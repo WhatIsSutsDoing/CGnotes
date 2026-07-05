@@ -1,704 +1,2310 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Till Reconciliation — Maintainer's Guide</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-500-normal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-600-normal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-700-normal.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/source-serif-4@latest/latin-400-normal.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/source-serif-4@latest/latin-700-normal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono@latest/latin-400-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono@latest/latin-500-normal.css">
 <style>
+  /* ============ RESET & BASE ============ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+  /* ============ THEME VARIABLES ============ */
   :root {
-    --bg: #fafaf7;
-    --bg-soft: #f3f2ee;
-    --bg-code: #1c1b1a;
-    --text: #1f1d1a;
-    --text-soft: #5a5650;
-    --text-mute: #8a857d;
-    --border: #e5e2db;
-    --accent: #b85c38;
-    --accent-soft: #f4e6dc;
-    --accent-hover: #9c4a2c;
+    --bg: #0a0a0f;
+    --bg-elevated: #12121a;
+    --bg-surface: #16161f;
+    --bg-surface-2: #1c1c26;
+    --bg-code: #0d0d14;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --text: #e8e8ed;
+    --text-muted: #8a8a95;
+    --text-dim: #5c5c66;
+    --accent: #ff7a45;
+    --accent-hover: #ff8f61;
+    --accent-soft: rgba(255, 122, 69, 0.12);
+    --accent-glow: rgba(255, 122, 69, 0.25);
+    --success: #4ade80;
+    --success-soft: rgba(74, 222, 128, 0.1);
+    --warning: #fbbf24;
+    --warning-soft: rgba(251, 191, 36, 0.1);
+    --info: #60a5fa;
+    --info-soft: rgba(96, 165, 250, 0.1);
+    --danger: #f87171;
+    --danger-soft: rgba(248, 113, 113, 0.1);
+    --purple: #a78bfa;
+    --purple-soft: rgba(167, 139, 250, 0.1);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 40px rgba(255, 122, 69, 0.15);
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --sidebar-w: 280px;
+    --topbar-h: 64px;
+    --content-max: 820px;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  [data-theme="dark"] {
-    --bg: #0b0a09;
-    --bg-soft: #131210;
-    --bg-code: #050404;
-    --text: #e8e4db;
-    --text-soft: #9a948b;
-    --text-mute: #5c5750;
-    --border: #1f1d1a;
-    --accent: #d97a4a;
-    --accent-soft: #1e1510;
-    --accent-hover: #f09a6d;
+
+  [data-theme="light"] {
+    --bg: #fafaf9;
+    --bg-elevated: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-surface-2: #f5f5f4;
+    --bg-code: #1a1a24;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.14);
+    --text: #1a1a1f;
+    --text-muted: #5c5c66;
+    --text-dim: #8a8a95;
+    --accent: #ea580c;
+    --accent-hover: #c2410c;
+    --accent-soft: rgba(234, 88, 12, 0.08);
+    --accent-glow: rgba(234, 88, 12, 0.15);
+    --success: #16a34a;
+    --success-soft: rgba(22, 163, 74, 0.08);
+    --warning: #d97706;
+    --warning-soft: rgba(217, 119, 6, 0.08);
+    --info: #2563eb;
+    --info-soft: rgba(37, 99, 235, 0.08);
+    --danger: #dc2626;
+    --danger-soft: rgba(220, 38, 38, 0.08);
+    --purple: #7c3aed;
+    --purple-soft: rgba(124, 58, 237, 0.08);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+    --shadow-glow: 0 0 40px rgba(234, 88, 12, 0.1);
   }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 17px;
-    line-height: 1.75;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
     transition: background 0.3s, color 0.3s;
-    margin: 0;
-    padding: 0;
   }
-  .ui-font { font-family: 'Inter', system-ui, sans-serif; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
 
-  /* Scrollbar */
+  /* Background ambient gradient */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, var(--accent-glow), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(167, 139, 250, 0.06), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ============ SCROLLBAR ============ */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-mute); }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
-  /* Sidebar */
+  /* ============ PROGRESS BAR ============ */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    z-index: 1000;
+    transition: width 0.1s ease-out;
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* ============ TOPBAR ============ */
+  .topbar {
+    position: fixed;
+    top: 2px;
+    left: 0;
+    right: 0;
+    height: var(--topbar-h);
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: calc(var(--sidebar-w) - 48px);
+    text-decoration: none;
+    color: var(--text);
+  }
+  .topbar-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #ff5722);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    box-shadow: var(--shadow-glow);
+  }
+  .topbar-title {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .topbar-title-main {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .topbar-title-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .topbar-search {
+    flex: 1;
+    max-width: 480px;
+    position: relative;
+  }
+  .search-input {
+    width: 100%;
+    height: 38px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0 14px 0 38px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: all var(--transition);
+  }
+  .search-input::placeholder { color: var(--text-dim); }
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+  }
+  .search-kbd {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .icon-btn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+    background: var(--bg-surface-2);
+  }
+  .menu-btn { display: none; }
+
+  /* ============ LAYOUT ============ */
+  .layout {
+    display: flex;
+    padding-top: calc(var(--topbar-h) + 2px);
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============ SIDEBAR ============ */
   .sidebar {
-    background: var(--bg-soft);
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    position: sticky;
+    top: calc(var(--topbar-h) + 2px);
+    height: calc(100vh - var(--topbar-h) - 2px);
+    overflow-y: auto;
+    padding: 24px 16px 40px;
     border-right: 1px solid var(--border);
-    transition: transform 0.3s ease;
+    background: color-mix(in srgb, var(--bg) 60%, transparent);
+    backdrop-filter: blur(10px);
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .nav-group { margin-bottom: 24px; }
+  .nav-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    padding: 0 12px 8px;
   }
   .nav-link {
-    color: var(--text-soft);
-    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    margin: 1px 0;
     border-radius: 8px;
-    font-size: 14px;
-    display: block;
-    transition: all 0.15s;
-    border-left: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: 13.5px;
     text-decoration: none;
+    transition: all var(--transition);
     cursor: pointer;
+    position: relative;
   }
   .nav-link:hover {
     color: var(--text);
-    background: var(--bg);
+    background: var(--bg-surface);
   }
   .nav-link.active {
     color: var(--accent);
     background: var(--accent-soft);
-    border-left-color: var(--accent);
-    font-weight: 600;
   }
-  .nav-part {
-    color: var(--text);
-    font-weight: 600;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 10px 14px 6px;
-    margin-top: 8px;
+  .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 0 3px 3px 0;
+  }
+  .nav-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .nav-link.active .nav-icon { opacity: 1; }
+
+  /* ============ MAIN CONTENT ============ */
+  .main {
+    flex: 1;
+    min-width: 0;
+    padding: 0 48px 80px;
+  }
+  .content-wrap {
+    max-width: var(--content-max);
+    margin: 0 auto;
   }
 
-  /* Content */
-  .content h1 {
-    font-size: 2.5rem;
-    line-height: 1.15;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 1rem;
-  }
-  .content h2 {
-    font-size: 1.75rem;
-    line-height: 1.25;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    margin-top: 3.5rem;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.75rem;
+  /* ============ HERO ============ */
+  .hero {
+    padding: 64px 0 56px;
     border-bottom: 1px solid var(--border);
-    scroll-margin-top: 100px;
+    margin-bottom: 56px;
+    position: relative;
   }
-  .content h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-top: 2rem;
-    margin-bottom: 0.75rem;
-    color: var(--text);
-    scroll-margin-top: 100px;
-  }
-  .content p { margin-bottom: 1.25rem; color: var(--text-soft); }
-  .content p strong, .content li strong { color: var(--text); font-weight: 600; }
-  .content ul, .content ol { margin-bottom: 1.25rem; padding-left: 1.5rem; color: var(--text-soft); }
-  .content li { margin-bottom: 0.5rem; }
-  .content li::marker { color: var(--accent); }
-
-  .content code:not(pre code) {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    color: var(--accent);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.85em;
-  }
-  .content pre {
-    background: var(--bg-code);
-    color: #e8e4d9;
-    padding: 1.25rem 1.5rem;
-    border-radius: 10px;
-    overflow-x: auto;
-    margin: 1.5rem 0;
-    font-size: 0.85rem;
-    line-height: 1.6;
-    border: 1px solid var(--border);
-  }
-  .content pre code {
-    font-family: 'JetBrains Mono', monospace;
-    color: inherit;
-  }
-
-  .divider {
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--border), transparent);
-    margin: 3rem 0;
-  }
-
-  .callout {
-    background: var(--accent-soft);
-    border-left: 3px solid var(--accent);
-    padding: 1rem 1.25rem;
-    border-radius: 6px;
-    margin: 1.5rem 0;
-  }
-  .callout p { color: var(--text); margin: 0; }
-  .callout p:last-child { margin-bottom: 0; }
-
-  .rule-card {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 0.75rem;
-  }
-  .rule-card strong { color: var(--accent); }
-
-  .hero-meta {
+  .hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
-    color: var(--text-mute);
-    padding: 4px 12px;
-    border: 1px solid var(--border);
+    padding: 5px 12px;
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
     border-radius: 999px;
-    background: var(--bg-soft);
-  }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-
-  /* Top bar */
-  .topbar {
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(12px);
-    background: color-mix(in srgb, var(--bg) 85%, transparent);
-  }
-
-  /* Mobile */
-  @media (max-width: 1024px) {
-    .sidebar {
-      position: fixed;
-      top: 65px;
-      left: 0;
-      bottom: 0;
-      width: 280px;
-      z-index: 40;
-      transform: translateX(-100%);
-    }
-    .sidebar.open { transform: translateX(0); }
-    .overlay {
-      position: fixed;
-      inset: 65px 0 0 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 30;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    .overlay.show { opacity: 1; pointer-events: auto; }
-  }
-
-  /* Fade in */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .fade-up { animation: fadeUp 0.5s ease both; }
-
-  /* Flow diagram */
-  .flow-step {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem;
-    position: relative;
-  }
-  .flow-step::after {
-    content: '↓';
-    position: absolute;
-    left: 50%;
-    bottom: -22px;
-    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 500;
     color: var(--accent);
-    font-size: 18px;
+    margin-bottom: 20px;
   }
-  .flow-step:last-child::after { display: none; }
-
-  /* Button */
-  .btn {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.15s;
+  .hero-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.2); }
+  }
+  .hero-title {
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+    background: linear-gradient(180deg, var(--text) 0%, var(--text-muted) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-subtitle {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: 640px;
+    margin-bottom: 28px;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+  .hero-meta-item {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .hero-meta-item svg { color: var(--accent); }
+
+  /* ============ SECTIONS ============ */
+  .doc-section {
+    padding: 32px 0 56px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    scroll-margin-top: calc(var(--topbar-h) + 24px);
+  }
+  .doc-section:last-of-type { border-bottom: none; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  .section-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .section-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  h3.subsection {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    letter-spacing: -0.01em;
+    scroll-margin-top: calc(var(--topbar-h) + 24px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h3.subsection::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  p { margin-bottom: 16px; color: var(--text-muted); }
+  p strong { color: var(--text); font-weight: 600; }
+  ul, ol { margin-bottom: 16px; padding-left: 20px; color: var(--text-muted); }
+  li { margin-bottom: 8px; }
+  li::marker { color: var(--accent); }
+  li strong { color: var(--text); font-weight: 600; }
+  li code, p code, td code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+    word-break: break-word;
+  }
+
+  /* ============ CODE BLOCKS ============ */
+  .code-block {
+    position: relative;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 20px 0;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 8px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .code-lang {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .code-lang-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all var(--transition);
+  }
+  .copy-btn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+    background: var(--bg-surface);
+  }
+  .copy-btn.copied {
+    color: var(--success);
+    border-color: var(--success);
+  }
+  .code-content {
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e8e4d9;
+  }
+  .code-content pre { margin: 0; white-space: pre; }
+  /* Syntax highlighting */
+  .tok-keyword { color: #ff7b72; }
+  .tok-string { color: #a5d6ff; }
+  .tok-number { color: #79c0ff; }
+  .tok-comment { color: #8b949e; font-style: italic; }
+  .tok-function { color: #d2a8ff; }
+  .tok-variable { color: #ffa657; }
+  .tok-operator { color: #ff7b72; }
+  .tok-punctuation { color: #c9d1d9; }
+
+  /* ============ CARDS ============ */
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .card-grid {
+    display: grid;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .card-grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  /* ============ FLOW DIAGRAM ============ */
+  .flow-diagram {
+    margin: 28px 0;
+    padding: 24px;
+    background: linear-gradient(135deg, var(--bg-surface), var(--bg-surface-2));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    position: relative;
+  }
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+  .flow-step {
+    display: flex;
+    gap: 16px;
+    position: relative;
+    padding: 16px 0;
+  }
+  .flow-marker {
+    flex-shrink: 0;
+    width: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .flow-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 13px;
+    position: relative;
+    z-index: 2;
+  }
+  .flow-dot.settings {
+    background: var(--purple-soft);
+    border-color: color-mix(in srgb, var(--purple) 30%, transparent);
+    color: var(--purple);
+  }
+  .flow-line {
+    flex: 1;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--border-strong), transparent);
+    margin-top: 4px;
+  }
+  .flow-content {
+    flex: 1;
+    padding-top: 4px;
+  }
+  .flow-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .flow-label.purple { color: var(--purple); }
+  .flow-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .flow-title code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  .flow-desc {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ============ RULE CARDS ============ */
+  .rule-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 12px 0;
+    transition: all var(--transition);
+    position: relative;
+  }
+  .rule-card:hover {
+    border-color: var(--border-strong);
+    border-left-color: var(--accent);
+    background: var(--bg-surface-2);
+  }
+  .rule-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .rule-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .rule-title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14.5px;
+  }
+  .rule-body {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    padding-left: 40px;
+  }
+  .rule-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  /* ============ FUNCTION CARDS ============ */
+  .fn-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 12px 0;
+    transition: all var(--transition);
+  }
+  .fn-card:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-surface-2);
+  }
+  .fn-signature {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .fn-badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--info-soft);
+    color: var(--info);
+    border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
+  }
+  .fn-badge.reader { background: var(--success-soft); color: var(--success); border-color: color-mix(in srgb, var(--success) 20%, transparent); }
+  .fn-badge.cleaner { background: var(--warning-soft); color: var(--warning); border-color: color-mix(in srgb, var(--warning) 20%, transparent); }
+  .fn-badge.builder { background: var(--purple-soft); color: var(--purple); border-color: color-mix(in srgb, var(--purple) 20%, transparent); }
+  .fn-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+  .fn-desc code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  .fn-desc ul { margin: 8px 0 0; padding-left: 18px; }
+  .fn-desc li { margin-bottom: 4px; font-size: 13.5px; }
+
+  /* ============ CALLOUTS ============ */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    margin: 20px 0;
+    border: 1px solid;
+  }
+  .callout-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .callout-content { flex: 1; min-width: 0; }
+  .callout-title {
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 4px;
+  }
+  .callout-body {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .callout-body p { margin-bottom: 8px; color: inherit; }
+  .callout-body p:last-child { margin-bottom: 0; }
+  .callout-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .callout.info {
+    background: var(--info-soft);
+    border-color: color-mix(in srgb, var(--info) 25%, transparent);
+    color: var(--text);
+  }
+  .callout.info .callout-icon { background: var(--info); color: white; }
+  .callout.info code { background: rgba(96, 165, 250, 0.15); border-color: color-mix(in srgb, var(--info) 25%, transparent); color: var(--info); }
+
+  .callout.warning {
+    background: var(--warning-soft);
+    border-color: color-mix(in srgb, var(--warning) 25%, transparent);
+    color: var(--text);
+  }
+  .callout.warning .callout-icon { background: var(--warning); color: #1a1a1f; }
+  .callout.warning code { background: rgba(251, 191, 36, 0.15); border-color: color-mix(in srgb, var(--warning) 25%, transparent); color: var(--warning); }
+
+  .callout.success {
+    background: var(--success-soft);
+    border-color: color-mix(in srgb, var(--success) 25%, transparent);
+    color: var(--text);
+  }
+  .callout.success .callout-icon { background: var(--success); color: #1a1a1f; }
+  .callout.success code { background: rgba(74, 222, 128, 0.15); border-color: color-mix(in srgb, var(--success) 25%, transparent); color: var(--success); }
+
+  .callout.danger {
+    background: var(--danger-soft);
+    border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+    color: var(--text);
+  }
+  .callout.danger .callout-icon { background: var(--danger); color: white; }
+  .callout.danger code { background: rgba(248, 113, 113, 0.15); border-color: color-mix(in srgb, var(--danger) 25%, transparent); color: var(--danger); }
+
+  .callout.accent {
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--text);
+  }
+  .callout.accent .callout-icon { background: var(--accent); color: white; }
+  .callout.accent code { background: rgba(255, 122, 69, 0.15); border-color: color-mix(in srgb, var(--accent) 25%, transparent); color: var(--accent); }
+
+  /* ============ RECIPE CARDS ============ */
+  .recipe-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 12px 0;
+    transition: all var(--transition);
+  }
+  .recipe-card:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-surface-2);
+  }
+  .recipe-title {
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .recipe-title::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .recipe-body {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+  .recipe-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  .recipe-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+  .recipe-tag.nocode { background: var(--success-soft); color: var(--success); border: 1px solid color-mix(in srgb, var(--success) 20%, transparent); }
+  .recipe-tag.code { background: var(--info-soft); color: var(--info); border: 1px solid color-mix(in srgb, var(--info) 20%, transparent); }
+
+  /* ============ STEPS ============ */
+  .steps {
+    margin: 20px 0;
+    position: relative;
+  }
+  .step {
+    display: flex;
+    gap: 16px;
+    padding: 14px 0;
+    position: relative;
+  }
+  .step-marker {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text);
+    position: relative;
+    z-index: 2;
+  }
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 42px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .step-content {
+    flex: 1;
+    padding-top: 3px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+  .step-content code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  .step-content strong { color: var(--text); }
+
+  /* ============ TABLE ============ */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-surface);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--bg-surface-2);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  tr:last-child td { border-bottom: none; }
+  td code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  /* ============ PREV/NEXT NAV ============ */
+  .page-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .page-nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 18px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--text);
+    transition: all var(--transition);
     cursor: pointer;
   }
-  .btn:hover { background: var(--border); }
+  .page-nav-link:hover {
+    border-color: var(--accent);
+    background: var(--bg-surface-2);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .page-nav-link.next { text-align: right; align-items: flex-end; }
+  .page-nav-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .page-nav-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ============ BACK TO TOP ============ */
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: all var(--transition);
+    z-index: 50;
+    backdrop-filter: blur(10px);
+  }
+  .back-to-top.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .back-to-top:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ============ SEARCH MODAL ============ */
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 80px 20px;
+  }
+  .search-modal.show { display: flex; }
+  .search-modal-content {
+    width: 100%;
+    max-width: 600px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: modalIn 0.2s ease-out;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .search-modal-input {
+    width: 100%;
+    padding: 16px 20px 16px 48px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+  }
+  .search-modal-icon {
+    position: absolute;
+    left: 18px;
+    top: 20px;
+    color: var(--text-dim);
+  }
+  .search-results {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .search-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 14px;
+    transition: all var(--transition);
+  }
+  .search-result:hover, .search-result.focused {
+    background: var(--bg-surface-2);
+    color: var(--text);
+  }
+  .search-result-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .search-result-title { font-weight: 500; }
+  .search-result-section {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+  .search-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  .search-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .search-footer kbd {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    margin-right: 4px;
+  }
+
+  /* ============ KEYBOARD SHORTCUTS MODAL ============ */
+  .kbd-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .kbd-modal.show { display: flex; }
+  .kbd-modal-content {
+    width: 100%;
+    max-width: 440px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 24px;
+    animation: modalIn 0.2s ease-out;
+  }
+  .kbd-modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .kbd-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .kbd-row:last-child { border-bottom: none; }
+  .kbd-row-label { color: var(--text-muted); }
+  .kbd-keys { display: flex; gap: 4px; }
+  kbd.key {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text);
+    min-width: 24px;
+    text-align: center;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 32px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* ============ MOBILE ============ */
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .mobile-overlay.show { opacity: 1; pointer-events: auto; }
+
+  @media (max-width: 1024px) {
+    .topbar-brand { min-width: auto; }
+    .topbar-title-sub { display: none; }
+    .menu-btn { display: flex; }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 300px;
+      z-index: 95;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      padding-top: calc(var(--topbar-h) + 24px);
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 0 20px 60px; }
+    .hero { padding: 40px 0 32px; }
+    .page-nav { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .main { padding: 0 16px 60px; }
+    .search-kbd { display: none; }
+    .hero-title { font-size: 2rem; }
+    .hero-meta { gap: 10px; }
+    .flow-step { gap: 12px; }
+    .rule-body { padding-left: 0; }
+  }
+
+  /* ============ ANIMATIONS ============ */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ============ PRINT ============ */
+  @media print {
+    .topbar, .sidebar, .back-to-top, .progress-bar, .page-nav, .copy-btn, .search-modal, .kbd-modal, .mobile-overlay, .menu-btn { display: none !important; }
+    body { background: white; color: black; }
+    .main { padding: 0; }
+    .layout { display: block; padding-top: 0; }
+    .doc-section { page-break-inside: avoid; border: none; }
+    .card, .rule-card, .fn-card, .recipe-card, .callout, .code-block {
+      background: white;
+      border: 1px solid #ddd;
+      box-shadow: none;
+      color: black;
+    }
+    .code-content { color: black; background: #f5f5f5; }
+    a { color: black; text-decoration: underline; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Top bar -->
-<header class="topbar fixed top-0 left-0 right-0 z-50 h-[65px] flex items-center justify-between px-5 md:px-8">
-  <div class="flex items-center gap-3">
-    <button id="menuBtn" class="btn lg:hidden" aria-label="Menu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-    </button>
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-lg flex items-center justify-center ui-font font-bold text-white" style="background: var(--accent);">T</div>
-      <div class="ui-font">
-        <div class="text-sm font-semibold leading-tight">Till Reconciliation</div>
-        <div class="text-xs leading-tight" style="color: var(--text-mute);">Maintainer's Guide</div>
-      </div>
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar" style="width: 0%"></div>
+
+<!-- Top Bar -->
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <a href="#intro" class="topbar-brand">
+    <div class="topbar-logo">T</div>
+    <div class="topbar-title">
+      <span class="topbar-title-main">Till Reconciliation</span>
+      <span class="topbar-title-sub">Maintainer's Guide</span>
     </div>
+  </a>
+  <div class="topbar-search">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" class="search-input" id="searchInput" placeholder="Search documentation..." readonly>
+    <span class="search-kbd">/</span>
   </div>
-  <div class="flex items-center gap-2">
-    <button id="themeBtn" class="btn" aria-label="Toggle theme">
-      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="kbdBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"/></svg>
+    </button>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
   </div>
 </header>
 
-<div class="overlay" id="overlay"></div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
 
-<div class="flex pt-[65px] min-h-screen">
-
+<div class="layout">
   <!-- Sidebar -->
-  <aside class="sidebar w-[280px] shrink-0 h-[calc(100vh-65px)] sticky top-[65px] overflow-y-auto hidden lg:block py-4" id="sidebar">
-    <nav class="px-3">
-      <div class="nav-part">Overview</div>
-      <a href="#intro" class="nav-link">Introduction</a>
-
-      <div class="nav-part">Foundations</div>
-      <a href="#part1" class="nav-link">1 · The one-minute picture</a>
-      <a href="#part2" class="nav-link">2 · Python survival kit</a>
-
-      <div class="nav-part">The Files</div>
-      <a href="#part3" class="nav-link">3 · Files, one by one</a>
-      <a href="#part4" class="nav-link">4 · pipeline_core.py</a>
-
-      <div class="nav-part">Day to Day</div>
-      <a href="#part5" class="nav-link">5 · Recipes for changes</a>
-      <a href="#part6" class="nav-link">6 · Golden rules</a>
-      <a href="#part7" class="nav-link">7 · Testing changes</a>
+  <aside class="sidebar" id="sidebar">
+    <nav>
+      <div class="nav-group">
+        <div class="nav-group-title">Getting Started</div>
+        <a href="#intro" class="nav-link" data-section="intro">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Introduction
+        </a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">Foundations</div>
+        <a href="#part1" class="nav-link" data-section="part1">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          1 · The one-minute picture
+        </a>
+        <a href="#part2" class="nav-link" data-section="part2">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          2 · Python survival kit
+        </a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">The Files</div>
+        <a href="#part3" class="nav-link" data-section="part3">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          3 · Files, one by one
+        </a>
+        <a href="#part4" class="nav-link" data-section="part4">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+          4 · pipeline_core.py
+        </a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">Day to Day</div>
+        <a href="#part5" class="nav-link" data-section="part5">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          5 · Recipes for changes
+        </a>
+        <a href="#part6" class="nav-link" data-section="part6">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          6 · Golden rules
+        </a>
+        <a href="#part7" class="nav-link" data-section="part7">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          7 · Testing changes
+        </a>
+      </div>
     </nav>
   </aside>
 
-  <!-- Main content -->
-  <main class="flex-1 min-w-0">
-    <div class="max-w-3xl mx-auto px-6 sm:px-10 md:px-16 lg:px-20 py-10 md:py-14 content">
+  <!-- Main Content -->
+  <main class="main">
+    <div class="content-wrap">
 
       <!-- Hero -->
-      <section id="intro" class="fade-up">
-        <div class="hero-meta ui-font mb-6">
-          <span class="dot"></span>
-          <span>Internal documentation · v1.0</span>
+      <section class="hero" id="intro">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          <span>Internal Documentation · v1.0</span>
         </div>
-        <h1>Maintainer's Guide</h1>
-        <p class="text-lg" style="color: var(--text-soft);">
+        <h1 class="hero-title">Maintainer's Guide</h1>
+        <p class="hero-subtitle">
           This guide explains how every script and every function works, in plain English, so you can change things yourself without breaking the pipeline. It assumes no Python experience. Read parts 1 and 2 once; after that, use part 5 (recipes) and part 6 (golden rules) whenever you want to change something.
         </p>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="readTime">15 min read</span>
+          </div>
+          <div class="hero-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>7 sections</span>
+          </div>
+          <div class="hero-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>For maintainers</span>
+          </div>
+        </div>
       </section>
 
-      <div class="divider"></div>
-
       <!-- PART 1 -->
-      <section id="part1" class="fade-up">
-        <h2>Part 1 — The one-minute picture</h2>
-        <p>There are six Python files. Only two do the real work; the others are wrappers and tools.</p>
-
-        <div class="grid gap-4 my-6">
-          <div class="flow-step">
-            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">STEP 1</div>
-            <div class="font-semibold">daily_runner.py</div>
-            <p class="text-sm mb-0" style="color: var(--text-soft);">Finds the files in <code>incoming/</code>, decides folder names, archives inputs. Knows <em>nothing</em> about accounting.</p>
-          </div>
-          <div class="flow-step">
-            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">STEP 2</div>
-            <div class="font-semibold">clean_pipeline.py — <code>run_day()</code></div>
-            <p class="text-sm mb-0" style="color: var(--text-soft);">The recipe card. Calls the pipeline_core functions in the right order, writes the outputs.</p>
-          </div>
-          <div class="flow-step">
-            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">STEP 3</div>
-            <div class="font-semibold">pipeline_core.py</div>
-            <p class="text-sm mb-0" style="color: var(--text-soft);">The engine. Every rule about money lives here: reading files, the 4 cleaning rules, building the three journals, the balance checks.</p>
-          </div>
-          <div class="flow-step">
-            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">SETTINGS</div>
-            <div class="font-semibold">reference/reference.json</div>
-            <p class="text-sm mb-0" style="color: var(--text-soft);">The "settings file": shops, cost centres, journal row types, coupon codes. Plain text.</p>
+      <section class="doc-section fade-in" id="part1">
+        <div class="section-header">
+          <div class="section-number">1</div>
+          <div>
+            <h2 class="section-title">The one-minute picture</h2>
+            <div class="section-subtitle">How the pipeline is structured</div>
           </div>
         </div>
 
-        <h3>Side tools, used occasionally</h3>
+        <p>There are six Python files. Only two do the real work; the others are wrappers and tools.</p>
+        <p>You double-click <strong>"Run Daily Reconciliation"</strong></p>
+
+        <!-- Flow Diagram -->
+        <div class="flow-diagram">
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-marker">
+                <div class="flow-dot">1</div>
+                <div class="flow-line"></div>
+              </div>
+              <div class="flow-content">
+                <div class="flow-label">Front Door</div>
+                <div class="flow-title"><code>daily_runner.py</code></div>
+                <div class="flow-desc">Finds the files in <code>incoming/</code>, decides folder names, archives inputs. Knows <em>nothing</em> about accounting.</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-marker">
+                <div class="flow-dot">2</div>
+                <div class="flow-line"></div>
+              </div>
+              <div class="flow-content">
+                <div class="flow-label">Recipe Card</div>
+                <div class="flow-title"><code>clean_pipeline.py</code></div>
+                <div class="flow-desc"><code>run_day()</code>: the recipe card. Calls the pipeline_core functions in the right order, writes the outputs.</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-marker">
+                <div class="flow-dot">3</div>
+                <div class="flow-line"></div>
+              </div>
+              <div class="flow-content">
+                <div class="flow-label">Engine</div>
+                <div class="flow-title"><code>pipeline_core.py</code></div>
+                <div class="flow-desc">The engine. Every rule about money lives here: reading files, the 4 cleaning rules, building the three journals, the balance checks.</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-marker">
+                <div class="flow-dot settings">⚙</div>
+              </div>
+              <div class="flow-content">
+                <div class="flow-label purple">Settings</div>
+                <div class="flow-title"><code>reference/reference.json</code></div>
+                <div class="flow-desc">The "settings file": shops, cost centres, journal row types, coupon codes. Plain text.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="subsection">Side tools, used occasionally</h3>
         <ul>
           <li><strong>combine_exports.py</strong> — stacks several days' exports into one import file.</li>
           <li><strong>extract_reference.py</strong> — rebuilds <code>reference.json</code> from a finished workbook.</li>
           <li><strong>validate_exports.py</strong> — compares one run's exports against another set.</li>
         </ul>
 
-        <div class="callout">
-          <p><strong>A rule of thumb for where to look:</strong> if the change is about a shop, cost centre or coupon code, edit <code>reference.json</code> (no code at all). If it's about folders or file names, look in <code>daily_runner.py</code>. If it's about money, rules or journal content, look in <code>pipeline_core.py</code>.</p>
+        <div class="callout accent">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">A rule of thumb for where to look</div>
+            <div class="callout-body">
+              <p>If the change is about a shop, cost centre or coupon code, edit <code>reference.json</code> (no code at all). If it's about folders or file names, look in <code>daily_runner.py</code>. If it's about money, rules or journal content, look in <code>pipeline_core.py</code>.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div class="divider"></div>
-
       <!-- PART 2 -->
-      <section id="part2" class="fade-up">
-        <h2>Part 2 — Python survival kit <span class="text-base font-normal" style="color: var(--text-mute);">(10 minutes)</span></h2>
+      <section class="doc-section fade-in" id="part2">
+        <div class="section-header">
+          <div class="section-number">2</div>
+          <div>
+            <h2 class="section-title">Python survival kit</h2>
+            <div class="section-subtitle">10 minutes to read this codebase</div>
+          </div>
+        </div>
+
         <p>You only need five ideas to read this codebase.</p>
 
         <div class="rule-card">
-          <p><strong>1. A function is a named recipe.</strong> <code>def read_banking(path):</code> defines a recipe called <code>read_banking</code> that needs one ingredient (<code>path</code>, the file location). Everything indented below it is the recipe. <code>return b</code> at the end is what the recipe hands back. Indentation is not decoration in Python — it <em>is</em> the structure, so when editing, keep lines aligned exactly as their neighbours (4 spaces per level, never tabs).</p>
+          <div class="rule-card-header">
+            <div class="rule-number">1</div>
+            <div class="rule-title">A function is a named recipe</div>
+          </div>
+          <div class="rule-body">
+            <p><code>def read_banking(path):</code> defines a recipe called <code>read_banking</code> that needs one ingredient (<code>path</code>, the file location). Everything indented below it is the recipe. <code>return b</code> at the end is what the recipe hands back. Indentation is not decoration in Python — it <em>is</em> the structure, so when editing, keep lines aligned exactly as their neighbours (4 spaces per level, never tabs).</p>
+          </div>
         </div>
 
         <div class="rule-card">
-          <p><strong>2. A dictionary maps names to values.</strong> <code>{'CG-BLA01': 'A52'}</code> is a lookup table: ask for <code>'CG-BLA01'</code>, get <code>'A52'</code>. <code>ref['shop_cost_centre']</code> is such a table. <code>.get(sh, NA)</code> means "look up sh, and if it's not there, give me NA instead of crashing".</p>
+          <div class="rule-card-header">
+            <div class="rule-number">2</div>
+            <div class="rule-title">A dictionary maps names to values</div>
+          </div>
+          <div class="rule-body">
+            <p><code>{'CG-BLA01': 'A52'}</code> is a lookup table: ask for <code>'CG-BLA01'</code>, get <code>'A52'</code>. <code>ref['shop_cost_centre']</code> is such a table. <code>.get(sh, NA)</code> means "look up sh, and if it's not there, give me NA instead of crashing".</p>
+          </div>
         </div>
 
         <div class="rule-card">
-          <p><strong>3. A DataFrame is a spreadsheet in memory.</strong> The variable names follow a convention throughout: <code>s</code> = the Sales sheet, <code>si</code> = Sales Items, <code>sp</code> = Sales Payments, each as a DataFrame. <code>si['Total']</code> is a whole column. <code>si.groupby('Sale ID')['Total'].sum()</code> means "subtotal the Total column for each Sale ID" — exactly a pivot table. <code>df[df['Type'] == 'POS Payment']</code> means "keep only the rows where Type is POS Payment" — exactly a filter.</p>
+          <div class="rule-card-header">
+            <div class="rule-number">3</div>
+            <div class="rule-title">A DataFrame is a spreadsheet in memory</div>
+          </div>
+          <div class="rule-body">
+            <p>The variable names follow a convention throughout: <code>s</code> = the Sales sheet, <code>si</code> = Sales Items, <code>sp</code> = Sales Payments, each as a DataFrame. <code>si['Total']</code> is a whole column. <code>si.groupby('Sale ID')['Total'].sum()</code> means "subtotal the Total column for each Sale ID" — exactly a pivot table. <code>df[df['Type'] == 'POS Payment']</code> means "keep only the rows where Type is POS Payment" — exactly a filter.</p>
+          </div>
         </div>
 
         <div class="rule-card">
-          <p><strong>4. f-strings build text from values.</strong> <code>f'cash difference £{difference}'</code> inserts the value of <code>difference</code> into the message. The <code>{}</code> parts are live; the rest is literal text you can reword freely.</p>
+          <div class="rule-card-header">
+            <div class="rule-number">4</div>
+            <div class="rule-title">f-strings build text from values</div>
+          </div>
+          <div class="rule-body">
+            <p><code>f'cash difference £{difference}'</code> inserts the value of <code>difference</code> into the message. The <code>{}</code> parts are live; the rest is literal text you can reword freely.</p>
+          </div>
         </div>
 
         <div class="rule-card">
-          <p><strong>5. Comments.</strong> Anything after <code>#</code> on a line is a note for humans, ignored by Python. The scripts are full of them — read them, they explain intent.</p>
+          <div class="rule-card-header">
+            <div class="rule-number">5</div>
+            <div class="rule-title">Comments</div>
+          </div>
+          <div class="rule-body">
+            <p>Anything after <code>#</code> on a line is a note for humans, ignored by Python. The scripts are full of them — read them, they explain intent.</p>
+          </div>
         </div>
 
-        <div class="callout">
-          <p><strong>How to edit safely:</strong> use a plain-text editor (Notepad++ or VS Code on Windows, TextEdit-in-plain-mode or VS Code on Mac — <em>not</em> Word). Before any change, copy the file you're editing to e.g. <code>pipeline_core BACKUP.py</code>. If a run crashes after your edit, the error message's last few lines name the file and line number — go there, compare with your backup.</p>
+        <div class="callout info">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">How to edit safely</div>
+            <div class="callout-body">
+              <p>Use a plain-text editor (Notepad++ or VS Code on Windows, TextEdit-in-plain-mode or VS Code on Mac — <em>not</em> Word). Before any change, copy the file you're editing to e.g. <code>pipeline_core BACKUP.py</code>. If a run crashes after your edit, the error message's last few lines name the file and line number — go there, compare with your backup.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div class="divider"></div>
-
       <!-- PART 3 -->
-      <section id="part3" class="fade-up">
-        <h2>Part 3 — The files, one by one</h2>
-
-        <h3>daily_runner.py <span class="text-base font-normal" style="color: var(--text-mute);">— the front door</span></h3>
-        <ul>
-          <li><strong>find_one(patterns, kind, required)</strong> — looks in <code>incoming/</code> for one file matching the patterns (e.g. <code>*zettle*.csv</code>). Refuses to guess if it finds two, tells you plainly if it finds none. If your file names change shape, this is where the matching patterns live.</li>
-          <li><strong>main()</strong> — finds the four inputs, calls <code>run_day(...)</code>, then moves results to <code>output/&lt;trading-date&gt;/</code> (adding <code>_run2</code>, <code>_run3</code> if you re-run a day) and the inputs to <code>archive/&lt;trading-date&gt;/</code>. If the pipeline crashes it prints the error and touches nothing.</li>
-        </ul>
-
-        <h3>clean_pipeline.py <span class="text-base font-normal" style="color: var(--text-mute);">— the recipe card</span></h3>
-        <p>One important function, <code>run_day(...)</code>. Its steps, in order:</p>
-        <ol>
-          <li>Read the four inputs (till workbook, Zettle CSV, banking CSV, coupons).</li>
-          <li>Work out the trading date from the Sales sheet and build the journal reference like <code>SU 29.01.26</code>. Flags for review if the till export spans more than one date.</li>
-          <li>Collect the coupon sale IDs (sales where Coupon Amount isn't zero).</li>
-          <li>Apply the cleaning rules: <code>clean(...)</code> then <code>fix_negative_misc(...)</code>.</li>
-          <li>Derive the per-item Shop / Description / Payment Type columns.</li>
-          <li>Work out per-shop cash takings and per-shop coupon totals.</li>
-          <li>Build the three journals: <code>build_ptf1_rows</code>, <code>build_banking_table</code> + <code>build_ptf2_rows</code>, <code>build_ptf3_rows</code>.</li>
-          <li>Run <code>balance_and_checks(...)</code>.</li>
-          <li><strong>Only if balanced AND nothing in manual_review:</strong> write the three <code>*_PTFn_export.csv</code> files. Warnings do not block. Always writes the <code>_CLEANED.xlsx</code> workbook, <code>run_report.json</code>, and <code>SUMMARY.txt</code>.</li>
-        </ol>
-
-        <div class="callout">
-          <p>If you ever want to change <strong>what blocks exports</strong>, the line to find is:</p>
-          <pre><code>if balanced and not report['manual_review']:</code></pre>
-          <p>Anything appended to <code>report['manual_review']</code> anywhere in the code blocks exports; anything appended to <code>report['warnings']</code> is shown but does not.</p>
+      <section class="doc-section fade-in" id="part3">
+        <div class="section-header">
+          <div class="section-number">3</div>
+          <div>
+            <h2 class="section-title">The files, one by one</h2>
+            <div class="section-subtitle">A tour of every script</div>
+          </div>
         </div>
 
-        <h3>pipeline_core.py <span class="text-base font-normal" style="color: var(--text-mute);">— the engine</span></h3>
+        <h3 class="subsection">daily_runner.py — the front door</h3>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>find_one(patterns, kind, required)</span>
+            <span class="fn-badge">Utility</span>
+          </div>
+          <div class="fn-desc">Looks in <code>incoming/</code> for one file matching the patterns (e.g. <code>*zettle*.csv</code>). Refuses to guess if it finds two, tells you plainly if it finds none. If your file names change shape, this is where the matching patterns live.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>main()</span>
+            <span class="fn-badge">Entry</span>
+          </div>
+          <div class="fn-desc">Finds the four inputs, calls <code>run_day(...)</code>, then moves results to <code>output/&lt;trading-date&gt;/</code> (adding <code>_run2</code>, <code>_run3</code> if you re-run a day) and the inputs to <code>archive/&lt;trading-date&gt;/</code>. If the pipeline crashes it prints the error and touches nothing.</div>
+        </div>
+
+        <h3 class="subsection">clean_pipeline.py — the recipe card</h3>
+        <p>One important function, <code>run_day(...)</code>. Its steps, in order:</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-marker">1</div>
+            <div class="step-content">Read the four inputs (till workbook, Zettle CSV, banking CSV, coupons).</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">2</div>
+            <div class="step-content">Work out the trading date from the Sales sheet and build the journal reference like <code>SU 29.01.26</code>. Flags for review if the till export spans more than one date.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">3</div>
+            <div class="step-content">Collect the coupon sale IDs (sales where Coupon Amount isn't zero).</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">4</div>
+            <div class="step-content">Apply the cleaning rules: <code>clean(...)</code> then <code>fix_negative_misc(...)</code>.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">5</div>
+            <div class="step-content">Derive the per-item Shop / Description / Payment Type columns.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">6</div>
+            <div class="step-content">Work out per-shop cash takings and per-shop coupon totals.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">7</div>
+            <div class="step-content">Build the three journals: <code>build_ptf1_rows</code>, <code>build_banking_table</code> + <code>build_ptf2_rows</code>, <code>build_ptf3_rows</code>.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">8</div>
+            <div class="step-content">Run <code>balance_and_checks(...)</code>.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">9</div>
+            <div class="step-content"><strong>Only if balanced AND nothing in manual_review:</strong> write the three <code>*_PTFn_export.csv</code> files. Warnings do not block. Always writes the <code>_CLEANED.xlsx</code> workbook, <code>run_report.json</code>, and <code>SUMMARY.txt</code>.</div>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">What blocks exports</div>
+            <div class="callout-body">
+              <p>If you ever want to change <strong>what blocks exports</strong>, the line to find is:</p>
+              <p><code>if balanced and not report['manual_review']:</code></p>
+              <p>Anything appended to <code>report['manual_review']</code> anywhere in the code blocks exports; anything appended to <code>report['warnings']</code> is shown but does not.</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="subsection">pipeline_core.py — the engine</h3>
         <p>See Part 4.</p>
 
-        <h3>combine_exports.py <span class="text-base font-normal" style="color: var(--text-mute);">— batching for import</span></h3>
-        <ul>
-          <li><strong>parse_date(s)</strong> — understands <code>dd/mm/yyyy</code> and several other date shapes.</li>
-          <li><strong>day_folder(day)</strong> — finds <code>output/&lt;date&gt;</code>, preferring the highest <code>_runN</code> folder if the day was re-run.</li>
-          <li><strong>day_frames(folder)</strong> — loads that day's PTF1, PTF2, PTF3 CSVs.</li>
-          <li><strong>main(argv)</strong> — asks for the from/to dates, warns about missing days, stacks everything in order, writes <code>output/PTF_&lt;d1&gt;-&lt;d2&gt;.csv</code> in Windows (cp1252) encoding, and re-checks the combined file balances.</li>
-        </ul>
+        <h3 class="subsection">combine_exports.py — batching for import</h3>
 
-        <h3>extract_reference.py</h3>
+        <div class="fn-card">
+          <div class="fn-signature"><span>parse_date(s)</span></div>
+          <div class="fn-desc">Understands <code>dd/mm/yyyy</code> and several other date shapes.</div>
+        </div>
+        <div class="fn-card">
+          <div class="fn-signature"><span>day_folder(day)</span></div>
+          <div class="fn-desc">Finds <code>output/&lt;date&gt;</code>, preferring the highest <code>_runN</code> folder if the day was re-run.</div>
+        </div>
+        <div class="fn-card">
+          <div class="fn-signature"><span>day_frames(folder)</span></div>
+          <div class="fn-desc">Loads that day's PTF1, PTF2, PTF3 CSVs.</div>
+        </div>
+        <div class="fn-card">
+          <div class="fn-signature"><span>main(argv)</span></div>
+          <div class="fn-desc">Asks for the from/to dates, warns about missing days, stacks everything in order, writes <code>output/PTF_&lt;d1&gt;-&lt;d2&gt;.csv</code> in Windows (cp1252) encoding, and re-checks the combined file balances.</div>
+        </div>
+
+        <h3 class="subsection">extract_reference.py</h3>
         <p>Reads <em>only</em> the Control sheet of a finished workbook and rewrites <code>reference.json</code> (shop→cost centre, the 8 PTF 2 row types, coupon→outlet). You will rarely need it — editing <code>reference.json</code> by hand is usually easier.</p>
 
-        <h3>validate_exports.py</h3>
-        <pre><code>python3 validate_exports.py --any-order &lt;run_folder&gt; &lt;old csvs...&gt;</code></pre>
+        <h3 class="subsection">validate_exports.py</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-lang"><span class="code-lang-dot"></span>Terminal</div>
+            <button class="copy-btn" data-copy>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <div class="code-content"><pre>python3 validate_exports.py --any-order &lt;run_folder&gt; &lt;old csvs...&gt;</pre></div>
+        </div>
         <p>Compares a run's exports against reference CSVs, cell by cell, tolerant of number formatting. Your safety net after code changes (see Part 7).</p>
       </section>
 
-      <div class="divider"></div>
-
       <!-- PART 4 -->
-      <section id="part4" class="fade-up">
-        <h2>Part 4 — pipeline_core.py, function by function</h2>
+      <section class="doc-section fade-in" id="part4">
+        <div class="section-header">
+          <div class="section-number">4</div>
+          <div>
+            <h2 class="section-title">pipeline_core.py, function by function</h2>
+            <div class="section-subtitle">The engine, dissected</div>
+          </div>
+        </div>
 
-        <h3>The constants at the top</h3>
-        <pre><code>TOL = 0.005            # "equal to the penny" tolerance everywhere
-NA  = '#N/A'           # what an unknown shop's cost centre shows as
-SUFFIX = {'VOUCHER': 'v', 'CASH': 'x', ...}
-MOVE_PRIORITY = {'VOUCHER': 0, 'CASH': 1, 'IZETTLE': 2, 'CARD': 2}
-R2 = round to 2 decimal places (used constantly)</code></pre>
+        <h3 class="subsection">The constants at the top</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-lang"><span class="code-lang-dot"></span>Python</div>
+            <button class="copy-btn" data-copy>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <div class="code-content"><pre><span class="tok-variable">TOL</span> <span class="tok-operator">=</span> <span class="tok-number">0.005</span>            <span class="tok-comment"># "equal to the penny" tolerance everywhere</span>
+<span class="tok-variable">NA</span>  <span class="tok-operator">=</span> <span class="tok-string">'#N/A'</span>           <span class="tok-comment"># what an unknown shop's cost centre shows as</span>
+<span class="tok-variable">SUFFIX</span> <span class="tok-operator">=</span> {<span class="tok-string">'VOUCHER'</span>: <span class="tok-string">'v'</span>, <span class="tok-string">'CASH'</span>: <span class="tok-string">'x'</span>, ...}
+<span class="tok-variable">MOVE_PRIORITY</span> <span class="tok-operator">=</span> {<span class="tok-string">'VOUCHER'</span>: <span class="tok-number">0</span>, <span class="tok-string">'CASH'</span>: <span class="tok-number">1</span>, <span class="tok-string">'IZETTLE'</span>: <span class="tok-number">2</span>, <span class="tok-string">'CARD'</span>: <span class="tok-number">2</span>}
+<span class="tok-variable">R2</span> <span class="tok-operator">=</span> <span class="tok-comment"># round to 2 decimal places (used constantly)</span></pre></div>
+        </div>
         <p><code>SUFFIX</code> and <code>MOVE_PRIORITY</code> control the sale-splitting rule: when one sale was paid with two methods, the <em>lowest</em> priority method is moved out onto a new Sale ID ending in its suffix letter (voucher part → <code>...v</code>, cash part → <code>...x</code>), and the highest priority keeps the original ID. Card keeps the original ID whenever it's involved so Zettle matching still works.</p>
 
-        <h3>Readers (files in)</h3>
-        <ul>
-          <li><strong>read_till_workbook(path)</strong> — opens the till <code>.xlsx</code> (headers are on row 5, hence <code>skiprows=4</code> inside) and returns the three DataFrames <code>s, si, sp</code>.</li>
-          <li><strong>read_csv_any(path)</strong> — reads a CSV in whatever encoding it was saved in (Excel's Windows format, UTF-8, with/without BOM). All CSV readers use it.</li>
-          <li><strong>money(series)</strong> — turns Excel-style money text into numbers: strips <code>£</code>, thousands commas, spaces; treats <code>(5.00)</code> as <code>-5.00</code>.</li>
-          <li><strong>read_zettle(path)</strong> — keeps only <code>Type == 'POS Payment'</code> (and Completed), cleans Gross/Fee/Net with <code>money</code>, and pulls the till Sale ID out of the Item Title (the part before the first underscore).</li>
-          <li><strong>read_banking(path)</strong> — needs <code>Shop_Code</code> and <code>Cash_Banked</code>; <code>Float_Change</code> (signed: +7 up, -5 down); <code>Card_Settlement</code> optional (blank = skip the cross-check). Old files with <code>Float_Start</code>/<code>End</code> or <code>Cash_Coins</code> still load.</li>
-          <li><strong>read_coupons(path)</strong> — forgiving headers ('Coupon code' or 'Coupon_Code', 'amount' or 'Amount'); ignores extra columns like 'Number of times used'.</li>
-        </ul>
+        <h3 class="subsection">Readers (files in)</h3>
 
-        <h3>Cleaning (the 4 rules)</h3>
-        <ul>
-          <li><strong>subset_for_amount(amounts, target)</strong> — the puzzle-solver used by splitting: which combination of item lines adds up to the moved payment? Prefers whole lines; will split one line in two if it must.</li>
-          <li><strong>clean(s, si, sp, report)</strong> — rules 1–3 in one pass:
-            <ol>
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>read_till_workbook(path)</span>
+            <span class="fn-badge reader">Reader</span>
+          </div>
+          <div class="fn-desc">Opens the till <code>.xlsx</code> (headers are on row 5, hence <code>skiprows=4</code> inside) and returns the three DataFrames <code>s, si, sp</code>.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>read_csv_any(path)</span>
+            <span class="fn-badge reader">Reader</span>
+          </div>
+          <div class="fn-desc">Reads a CSV in whatever encoding it was saved in (Excel's Windows format, UTF-8, with/without BOM). All CSV readers use it.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>money(series)</span>
+            <span class="fn-badge reader">Parser</span>
+          </div>
+          <div class="fn-desc">Turns Excel-style money text into numbers: strips <code>£</code>, thousands commas, spaces; treats <code>(5.00)</code> as <code>-5.00</code>.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>read_zettle(path)</span>
+            <span class="fn-badge reader">Reader</span>
+          </div>
+          <div class="fn-desc">Keeps only <code>Type == 'POS Payment'</code> (and Completed), cleans Gross/Fee/Net with <code>money</code>, and pulls the till Sale ID out of the Item Title (the part before the first underscore).</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>read_banking(path)</span>
+            <span class="fn-badge reader">Reader</span>
+          </div>
+          <div class="fn-desc">Needs <code>Shop_Code</code> and <code>Cash_Banked</code>; <code>Float_Change</code> (signed: +7 up, -5 down); <code>Card_Settlement</code> optional (blank = skip the cross-check). Old files with <code>Float_Start</code>/<code>End</code> or <code>Cash_Coins</code> still load.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>read_coupons(path)</span>
+            <span class="fn-badge reader">Reader</span>
+          </div>
+          <div class="fn-desc">Forgiving headers ('Coupon code' or 'Coupon_Code', 'amount' or 'Amount'); ignores extra columns like 'Number of times used'.</div>
+        </div>
+
+        <h3 class="subsection">Cleaning (the 4 rules)</h3>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>subset_for_amount(amounts, target)</span>
+            <span class="fn-badge cleaner">Solver</span>
+          </div>
+          <div class="fn-desc">The puzzle-solver used by splitting: which combination of item lines adds up to the moved payment? Prefers whole lines; will split one line in two if it must.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>clean(s, si, sp, report)</span>
+            <span class="fn-badge cleaner">Cleaner</span>
+          </div>
+          <div class="fn-desc">
+            Rules 1–3 in one pass:
+            <ul>
               <li><em>Splits</em> multi-payment sales (using SUFFIX / MOVE_PRIORITY above) and <em>merges</em> duplicate payments of the same method. Each action is logged into <code>report['splits']</code> / <code>report['merges']</code>.</li>
               <li><em>Deletes VOIDED sales that still carry a value</em> (rows removed from all three sheets; logged in <code>report['voids']</code>).</li>
               <li><em>Penny fixes</em>: if a sale's items and payments disagree by 5p or less, nudges one item line so they match; more than 5p goes to <code>manual_review</code>.</li>
-            </ol>
-          </li>
-          <li><strong>fix_negative_misc(...)</strong> — rule 4: a negative MISC line is re-labelled to the product of the matching original sale (same shop, same payment type, same amount, nearest earlier sale with a single product). No match → <code>manual_review</code>.</li>
-        </ul>
+            </ul>
+          </div>
+        </div>
 
-        <h3>Derived columns</h3>
-        <p><strong>derive_item_columns(si, sales, sp, coupon_ids, blank_desc_label)</strong> — adds three columns to Sales Items: <strong>Shop</strong> (from the sale's Outlet Tag), <strong>Payment Type</strong> (CASH → 'Cash'; card entry mode ending 'EMV' → 'Card'; otherwise 'Redeemed'; coupon sales → 'Coupon'/'Split'), and <strong>Description</strong> (product name for CG-/CL- shops, category for cafés; blank café categories become <code>blank_desc_label</code>, default '0').</p>
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>fix_negative_misc(...)</span>
+            <span class="fn-badge cleaner">Rule 4</span>
+          </div>
+          <div class="fn-desc">A negative MISC line is re-labelled to the product of the matching original sale (same shop, same payment type, same amount, nearest earlier sale with a single product). No match → <code>manual_review</code>.</div>
+        </div>
 
-        <h3>Journal builders</h3>
+        <h3 class="subsection">Derived columns</h3>
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>derive_item_columns(si, sales, sp, coupon_ids, blank_desc_label)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">
+            Adds three columns to Sales Items:
+            <ul>
+              <li><strong>Shop</strong> — from the sale's Outlet Tag</li>
+              <li><strong>Payment Type</strong> — CASH → 'Cash'; card entry mode ending 'EMV' → 'Card'; otherwise 'Redeemed'; coupon sales → 'Coupon'/'Split'</li>
+              <li><strong>Description</strong> — product name for CG-/CL- shops, category for cafés; blank café categories become <code>blank_desc_label</code>, default '0'</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="subsection">Journal builders</h3>
         <p>Every journal row is a dictionary with keys 'H' to 'Z' — the 19 output columns, named after their old spreadsheet column letters. The ones you'll care about:</p>
-        <ul>
-          <li><strong>J</strong> = the money value (always positive)</li>
-          <li><strong>K</strong> = nominal code</li>
-          <li><strong>L</strong> = narrative</li>
-          <li><strong>M</strong> = cost centre</li>
-          <li><strong>N</strong> = department</li>
-          <li><strong>O</strong> = shop</li>
-          <li><strong>R</strong> = SYSTraderTranType (4 or 5 for nominal lines, 1 for bank lines)</li>
-          <li><strong>Y / Z</strong> = date and journal reference</li>
-        </ul>
 
-        <ul>
-          <li><strong>build_ptf1_pivot(si_d)</strong> — subtotals Card+Cash items by Shop × Description, alphabetically.</li>
-          <li><strong>eval_ptf1_row(...)</strong> — turns one subtotal into a PTF 1 row: nominal 4150 if the description ends 'Donation', 2710 for Pay-it-Forward, else 5000; VAT maths (<code>P = J / 1.2</code> when VAT applies); R = 4 for positive, 5 for negative amounts.</li>
-          <li><strong>eval_ptf1_donation_row(...)</strong> — the two fixed rows at the top of PTF 1 (CG Network Donation → cost centre 153/GRO, General Donation → 100/CEN).</li>
-          <li><strong>build_ptf1_rows(...)</strong> — glues the above together.</li>
-          <li><strong>dept_of(shop)</strong> — 'GRO' if the code starts CG-, 'CLO' if CL-, else 'HEC'.</li>
-          <li><strong>build_banking_table(...)</strong> — one row of figures per shop (every shop in <code>reference.json</code>, plus any unexpected ones → <code>manual_review</code>): Card and Zettle Fee grouped from the Zettle CSV; Cash banked; <strong>Difference = Cash_Banked − cash payments + Float_Change</strong> (so float money isn't mistaken for a discrepancy); differences over £10 → warnings (do not block). Card_Settlement, when given, is cross-checked here.</li>
-          <li><strong>build_ptf2_rows(bank_table, ref, ...)</strong> — expands each shop's figures into its 8 journal lines using <code>ref['ptf2_row_types']</code>. Bank lines (Card → 1980, Cash → 1990) get R = 1. Nominal lines get R = 4 when the underlying figure is positive, 5 when negative — which is what makes 'Float decreased' post as 4, 'Float increased' as 5, surplus differences 4, shortfalls 5, with J always positive.</li>
-          <li><strong>build_ptf3_rows(sp, sales, coupons, ref, ...)</strong> — three blocks: vouchers by shop × series (last 4 digits of the reference; that series <em>is</em> the nominal code; narrative 'PIF donations redeemed'; R=4), the contra by shop × full reference (nominal 2710, 'Voucher - &lt;ref&gt;', R=5), and coupons by code (nominal 5000, 'Coupon - &lt;code&gt;', outlet from reference, R=5).</li>
-        </ul>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>J</code></td><td>The money value (always positive)</td></tr>
+              <tr><td><code>K</code></td><td>Nominal code</td></tr>
+              <tr><td><code>L</code></td><td>Narrative</td></tr>
+              <tr><td><code>M</code></td><td>Cost centre</td></tr>
+              <tr><td><code>N</code></td><td>Department</td></tr>
+              <tr><td><code>O</code></td><td>Shop</td></tr>
+              <tr><td><code>R</code></td><td>SYSTraderTranType (4 or 5 for nominal lines, 1 for bank lines)</td></tr>
+              <tr><td><code>Y</code> / <code>Z</code></td><td>Date and journal reference</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-        <h3>Checks and output</h3>
-        <ul>
-          <li><strong>balance_and_checks(...)</strong> — fills <code>report['checks']</code>: side A (all J where R is 4 or 2) must equal side B (R is 5 or 1); items must equal payments per sale; no MISC left; no voids with value; no multi-payment sales left; Zettle rows all matched; coupon file total equals the till's coupon total. Returns True only if all pass.</li>
-          <li><strong>PTF_HEADERS + rows_to_df(rows)</strong> — converts the H..Z dictionaries into the 19-column CSV layout, rounds money to 2dp, formats dates dd/mm/yyyy.</li>
-        </ul>
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>build_ptf1_pivot(si_d)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">Subtotals Card+Cash items by Shop × Description, alphabetically.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>eval_ptf1_row(...)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">Turns one subtotal into a PTF 1 row: nominal 4150 if the description ends 'Donation', 2710 for Pay-it-Forward, else 5000; VAT maths (<code>P = J / 1.2</code> when VAT applies); R = 4 for positive, 5 for negative amounts.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>eval_ptf1_donation_row(...)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">The two fixed rows at the top of PTF 1 (CG Network Donation → cost centre 153/GRO, General Donation → 100/CEN).</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>build_ptf1_rows(...)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">Glues the above together.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>dept_of(shop)</span>
+            <span class="fn-badge">Utility</span>
+          </div>
+          <div class="fn-desc">'GRO' if the code starts CG-, 'CLO' if CL-, else 'HEC'.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>build_banking_table(...)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">One row of figures per shop (every shop in <code>reference.json</code>, plus any unexpected ones → <code>manual_review</code>): Card and Zettle Fee grouped from the Zettle CSV; Cash banked; <strong>Difference = Cash_Banked − cash payments + Float_Change</strong> (so float money isn't mistaken for a discrepancy); differences over £10 → warnings (do not block). Card_Settlement, when given, is cross-checked here.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>build_ptf2_rows(bank_table, ref, ...)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">Expands each shop's figures into its 8 journal lines using <code>ref['ptf2_row_types']</code>. Bank lines (Card → 1980, Cash → 1990) get R = 1. Nominal lines get R = 4 when the underlying figure is positive, 5 when negative — which is what makes 'Float decreased' post as 4, 'Float increased' as 5, surplus differences 4, shortfalls 5, with J always positive.</div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>build_ptf3_rows(sp, sales, coupons, ref, ...)</span>
+            <span class="fn-badge builder">Builder</span>
+          </div>
+          <div class="fn-desc">Three blocks: vouchers by shop × series (last 4 digits of the reference; that series <em>is</em> the nominal code; narrative 'PIF donations redeemed'; R=4), the contra by shop × full reference (nominal 2710, 'Voucher - &lt;ref&gt;', R=5), and coupons by code (nominal 5000, 'Coupon - &lt;code&gt;', outlet from reference, R=5).</div>
+        </div>
+
+        <h3 class="subsection">Checks and output</h3>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>balance_and_checks(...)</span>
+            <span class="fn-badge">Validator</span>
+          </div>
+          <div class="fn-desc">
+            Fills <code>report['checks']</code>:
+            <ul>
+              <li>Side A (all J where R is 4 or 2) must equal side B (R is 5 or 1)</li>
+              <li>Items must equal payments per sale</li>
+              <li>No MISC left</li>
+              <li>No voids with value</li>
+              <li>No multi-payment sales left</li>
+              <li>Zettle rows all matched</li>
+              <li>Coupon file total equals the till's coupon total</li>
+            </ul>
+            Returns True only if all pass.
+          </div>
+        </div>
+
+        <div class="fn-card">
+          <div class="fn-signature">
+            <span>PTF_HEADERS + rows_to_df(rows)</span>
+            <span class="fn-badge">Formatter</span>
+          </div>
+          <div class="fn-desc">Converts the H..Z dictionaries into the 19-column CSV layout, rounds money to 2dp, formats dates dd/mm/yyyy.</div>
+        </div>
       </section>
-
-      <div class="divider"></div>
 
       <!-- PART 5 -->
-      <section id="part5" class="fade-up">
-        <h2>Part 5 — Recipes for common changes</h2>
+      <section class="doc-section fade-in" id="part5">
+        <div class="section-header">
+          <div class="section-number">5</div>
+          <div>
+            <h2 class="section-title">Recipes for common changes</h2>
+            <div class="section-subtitle">Copy-paste instructions for everyday edits</div>
+          </div>
+        </div>
 
-        <h3>Change the £10 cash-difference review threshold</h3>
-        <p>File: <code>pipeline_core.py</code>, inside <code>build_banking_table</code>. Find <code>if abs(difference) &gt; 10:</code> and change the 10. Also reword the message in the line below if you like (it's just text in an f-string).</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Change the £10 cash-difference review threshold <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body">File: <code>pipeline_core.py</code>, inside <code>build_banking_table</code>. Find <code>if abs(difference) &gt; 10:</code> and change the 10. Also reword the message in the line below if you like (it's just text in an f-string).</div>
+        </div>
 
-        <h3>Add a shop</h3>
-        <p><strong>No code.</strong> In <code>reference.json</code>, inside <code>"shop_cost_centre"</code>, add a line like <code>"CG-WYT01": "A52",</code> (note the comma). That alone gives it the 8 daily PTF 2 lines, its cost centre everywhere, and its department.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Add a shop <span class="recipe-tag nocode">No code</span></div>
+          <div class="recipe-body">In <code>reference.json</code>, inside <code>"shop_cost_centre"</code>, add a line like <code>"CG-WYT01": "A52",</code> (note the comma). That alone gives it the 8 daily PTF 2 lines, its cost centre everywhere, and its department.</div>
+        </div>
 
-        <h3>Add or re-map a coupon code</h3>
-        <p><strong>No code.</strong> In <code>reference.json</code>, inside <code>"coupon_outlet"</code>, add <code>"NEWCODE": "Cafe - Mess",</code>.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Add or re-map a coupon code <span class="recipe-tag nocode">No code</span></div>
+          <div class="recipe-body">In <code>reference.json</code>, inside <code>"coupon_outlet"</code>, add <code>"NEWCODE": "Cafe - Mess",</code>.</div>
+        </div>
 
-        <h3>Change which department a shop prefix gets</h3>
-        <p><code>pipeline_core.py</code>, <code>dept_of</code> — four short lines, edit the prefixes/labels.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Change which department a shop prefix gets <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body"><code>pipeline_core.py</code>, <code>dept_of</code> — four short lines, edit the prefixes/labels.</div>
+        </div>
 
-        <h3>Reword a journal narrative</h3>
-        <p>For PTF 2 lines, edit the <code>description</code> text in <code>reference.json</code>'s <code>ptf2_row_types</code> (no code). For PTF 3, the texts <code>'PIF donations redeemed'</code>, <code>'Voucher - '</code>, <code>'Coupon - '</code> are literal strings inside <code>build_ptf3_rows</code>. For the café blank label, run with <code>--blank-desc "Open Food"</code> or change the default in <code>run_day</code>.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Reword a journal narrative <span class="recipe-tag code">Mixed</span></div>
+          <div class="recipe-body">For PTF 2 lines, edit the <code>description</code> text in <code>reference.json</code>'s <code>ptf2_row_types</code> (no code). For PTF 3, the texts <code>'PIF donations redeemed'</code>, <code>'Voucher - '</code>, <code>'Coupon - '</code> are literal strings inside <code>build_ptf3_rows</code>. For the café blank label, run with <code>--blank-desc "Open Food"</code> or change the default in <code>run_day</code>.</div>
+        </div>
 
-        <h3>Change a nominal code</h3>
-        <p>PTF 2 codes live in <code>reference.json</code> (<code>ptf2_row_types</code> → <code>bank</code> / <code>code</code>). PTF 1 codes (4150 / 2710 / 5000) are in <code>eval_ptf1_row</code>. PTF 3's 2710 and 5000 are in <code>build_ptf3_rows</code>.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Change a nominal code <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body">PTF 2 codes live in <code>reference.json</code> (<code>ptf2_row_types</code> → <code>bank</code> / <code>code</code>). PTF 1 codes (4150 / 2710 / 5000) are in <code>eval_ptf1_row</code>. PTF 3's 2710 and 5000 are in <code>build_ptf3_rows</code>.</div>
+        </div>
 
-        <h3>Change the penny-fix limit (currently 5p)</h3>
-        <p><code>pipeline_core.py</code>, inside <code>clean</code>, find <code>&gt; 0.05</code> near the penny section.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Change the penny-fix limit (currently 5p) <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body"><code>pipeline_core.py</code>, inside <code>clean</code>, find <code>&gt; 0.05</code> near the penny section.</div>
+        </div>
 
-        <h3>Change which payment method keeps the original Sale ID in a split</h3>
-        <p>Edit <code>MOVE_PRIORITY</code> at the top of <code>pipeline_core.py</code> — higher number keeps the ID. Don't demote CARD/IZETTLE below the others: the card part must keep the original ID or Zettle matching breaks.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Change which payment method keeps the original Sale ID in a split <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body">Edit <code>MOVE_PRIORITY</code> at the top of <code>pipeline_core.py</code> — higher number keeps the ID. Don't demote CARD/IZETTLE below the others: the card part must keep the original ID or Zettle matching breaks.</div>
+        </div>
 
-        <h3>Make something block exports / stop it blocking</h3>
-        <p>Find where it's appended and switch the list: <code>report['manual_review'].append(...)</code> blocks, <code>report.setdefault('warnings', []).append(...)</code> doesn't.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Make something block exports / stop it blocking <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body">Find where it's appended and switch the list: <code>report['manual_review'].append(...)</code> blocks, <code>report.setdefault('warnings', []).append(...)</code> doesn't.</div>
+        </div>
 
-        <h3>Change folder or file names</h3>
-        <p><code>daily_runner.py</code> (<code>INCOMING</code>, <code>OUTPUT</code>, <code>ARCHIVE</code>, and the <code>find_one</code> patterns) and, for the export file names, the <code>f'{base}_{name}_export.csv'</code> line in <code>run_day</code>.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Change folder or file names <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body"><code>daily_runner.py</code> (<code>INCOMING</code>, <code>OUTPUT</code>, <code>ARCHIVE</code>, and the <code>find_one</code> patterns) and, for the export file names, the <code>f'{base}_{name}_export.csv'</code> line in <code>run_day</code>.</div>
+        </div>
 
-        <h3>Change the £1-style tolerance used everywhere</h3>
-        <p>That's <code>TOL = 0.005</code> (half a penny) at the top of <code>pipeline_core.py</code>. Think twice — it's used in the balance checks too.</p>
+        <div class="recipe-card">
+          <div class="recipe-title">Change the £1-style tolerance used everywhere <span class="recipe-tag code">Code</span></div>
+          <div class="recipe-body">That's <code>TOL = 0.005</code> (half a penny) at the top of <code>pipeline_core.py</code>. Think twice — it's used in the balance checks too.</div>
+        </div>
       </section>
-
-      <div class="divider"></div>
 
       <!-- PART 6 -->
-      <section id="part6" class="fade-up">
-        <h2>Part 6 — Golden rules <span class="text-base font-normal" style="color: var(--text-mute);">(things NOT to change)</span></h2>
+      <section class="doc-section fade-in" id="part6">
+        <div class="section-header">
+          <div class="section-number">6</div>
+          <div>
+            <h2 class="section-title">Golden rules</h2>
+            <div class="section-subtitle">Things NOT to change</div>
+          </div>
+        </div>
 
-        <div class="rule-card">
-          <p><strong>1.</strong> Never edit <code>PTF_HEADERS</code> or the H..Z letters. They <em>are</em> your accounting import format. Rename one and the import breaks.</p>
+        <div class="callout danger">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">1. Never edit PTF_HEADERS or the H..Z letters</div>
+            <div class="callout-body">They <em>are</em> your accounting import format. Rename one and the import breaks.</div>
+          </div>
         </div>
-        <div class="rule-card">
-          <p><strong>2.</strong> Never rename the input column names the readers look for ('Sale ID', 'Payment Method', 'Payment Amount', 'Outlet Tag', 'Total', 'Shop_Code', 'Cash_Banked', …) unless the source files really changed.</p>
+
+        <div class="callout danger">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">2. Never rename the input column names the readers look for</div>
+            <div class="callout-body">'Sale ID', 'Payment Method', 'Payment Amount', 'Outlet Tag', 'Total', 'Shop_Code', 'Cash_Banked', … — unless the source files really changed.</div>
+          </div>
         </div>
-        <div class="rule-card">
-          <p><strong>3.</strong> Don't change the R (SYSTraderTranType) logic — 4/5/1 decide which side of the ledger a line sits on. Get one wrong and days stop balancing.</p>
+
+        <div class="callout danger">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">3. Don't change the R (SYSTraderTranType) logic</div>
+            <div class="callout-body">4/5/1 decide which side of the ledger a line sits on. Get one wrong and days stop balancing.</div>
+          </div>
         </div>
-        <div class="rule-card">
-          <p><strong>4.</strong> Keep J values positive. The sign information lives in R, not in J.</p>
+
+        <div class="callout danger">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">4. Keep J values positive</div>
+            <div class="callout-body">The sign information lives in R, not in J.</div>
+          </div>
         </div>
-        <div class="rule-card">
-          <p><strong>5.</strong> Don't weaken the balance check to "make a day pass". If a day won't balance, the data is telling you something — the run report says what.</p>
+
+        <div class="callout danger">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">5. Don't weaken the balance check to "make a day pass"</div>
+            <div class="callout-body">If a day won't balance, the data is telling you something — the run report says what.</div>
+          </div>
         </div>
-        <div class="rule-card">
-          <p><strong>6.</strong> Keep <code>reference.json</code> valid JSON: double quotes around names and values, commas between entries, no comma after the last entry in a block. If a run fails right after you edited it, it's almost always a missing or extra comma.</p>
+
+        <div class="callout danger">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">6. Keep reference.json valid JSON</div>
+            <div class="callout-body">Double quotes around names and values, commas between entries, no comma after the last entry in a block. If a run fails right after you edited it, it's almost always a missing or extra comma.</div>
+          </div>
         </div>
-        <div class="rule-card">
-          <p><strong>7.</strong> One change at a time, then test (Part 7), then the next change.</p>
+
+        <div class="callout danger">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">7. One change at a time</div>
+            <div class="callout-body">Then test (Part 7), then the next change.</div>
+          </div>
         </div>
       </section>
 
-      <div class="divider"></div>
-
       <!-- PART 7 -->
-      <section id="part7" class="fade-up">
-        <h2>Part 7 — How to test any change safely</h2>
+      <section class="doc-section fade-in" id="part7">
+        <div class="section-header">
+          <div class="section-number">7</div>
+          <div>
+            <h2 class="section-title">How to test any change safely</h2>
+            <div class="section-subtitle">A reliable workflow for every edit</div>
+          </div>
+        </div>
+
         <p>Keep a "known good day" — a set of inputs whose correct outputs you trust (your <code>archive/</code> folders are perfect for this: each holds the exact inputs for that date, and <code>output/&lt;date&gt;/</code> holds what they should produce).</p>
 
         <p>After any edit:</p>
-        <ol>
-          <li>Copy a known good day's inputs from <code>archive/&lt;date&gt;/</code> back into <code>incoming/</code> and double-click <em>Run Daily Reconciliation</em>.</li>
-          <li>It should say <strong>BALANCED</strong> with the same totals as before.</li>
-          <li>Compare the new exports with the old ones:
-            <pre><code>python3 validate_exports.py --any-order output/&lt;date&gt;_run2 \
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-marker">1</div>
+            <div class="step-content">Copy a known good day's inputs from <code>archive/&lt;date&gt;/</code> back into <code>incoming/</code> and double-click <em>Run Daily Reconciliation</em>.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">2</div>
+            <div class="step-content">It should say <strong>BALANCED</strong> with the same totals as before.</div>
+          </div>
+          <div class="step">
+            <div class="step-marker">3</div>
+            <div class="step-content">
+              Compare the new exports with the old ones:
+              <div class="code-block" style="margin: 12px 0;">
+                <div class="code-header">
+                  <div class="code-lang"><span class="code-lang-dot"></span>Terminal</div>
+                  <button class="copy-btn" data-copy>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span>Copy</span>
+                  </button>
+                </div>
+                <div class="code-content"><pre>python3 validate_exports.py --any-order output/&lt;date&gt;_run2 \
     output/&lt;date&gt;/*_PTF1_export.csv \
     output/&lt;date&gt;/*_PTF2_export.csv \
-    output/&lt;date&gt;/*_PTF3_export.csv</code></pre>
-            <p>"VALIDATION PASSED" = your change altered nothing it shouldn't.</p>
-            <p>(If your change was <em>meant</em> to alter the output — a reworded narrative, say — the diff will list exactly the cells that changed, so you can confirm it's only what you intended.)</p>
-          </li>
-          <li>Only then process new days with the changed scripts.</li>
-        </ol>
+    output/&lt;date&gt;/*_PTF3_export.csv</pre></div>
+              </div>
+              <p>"VALIDATION PASSED" = your change altered nothing it shouldn't.</p>
+              <p>(If your change was <em>meant</em> to alter the output — a reworded narrative, say — the diff will list exactly the cells that changed, so you can confirm it's only what you intended.)</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-marker">4</div>
+            <div class="step-content">Only then process new days with the changed scripts.</div>
+          </div>
+        </div>
 
-        <div class="callout">
-          <p>If anything goes wrong: restore your <code>BACKUP</code> copy of the file, re-run the known good day to confirm you're back to normal, and try again in smaller steps. And of course — bring the error message back to Claude and we'll fix it together.</p>
+        <div class="callout success">
+          <div class="callout-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="callout-content">
+            <div class="callout-title">If anything goes wrong</div>
+            <div class="callout-body">
+              <p>Restore your <code>BACKUP</code> copy of the file, re-run the known good day to confirm you're back to normal, and try again in smaller steps. And of course — bring the error message back to Claude and we'll fix it together.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div class="divider"></div>
+      <!-- Prev/Next Navigation -->
+      <nav class="page-nav" id="pageNav">
+        <a class="page-nav-link prev" data-nav="prev">
+          <span class="page-nav-label">← Previous</span>
+          <span class="page-nav-title" id="prevTitle"></span>
+        </a>
+        <a class="page-nav-link next" data-nav="next">
+          <span class="page-nav-label">Next →</span>
+          <span class="page-nav-title" id="nextTitle"></span>
+        </a>
+      </nav>
 
-      <footer class="text-center py-10" style="color: var(--text-mute);">
-        <p class="ui-font text-sm">Till Reconciliation · Maintainer's Guide</p>
+      <footer class="footer">
+        <p>Till Reconciliation · Maintainer's Guide · Internal Documentation</p>
       </footer>
 
     </div>
   </main>
 </div>
 
+<!-- Back to top -->
+<button class="back-to-top" id="backToTop" aria-label="Back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+
+<!-- Search Modal -->
+<div class="search-modal" id="searchModal">
+  <div class="search-modal-content">
+    <div style="position: relative;">
+      <svg class="search-modal-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" class="search-modal-input" id="searchModalInput" placeholder="Search documentation...">
+    </div>
+    <div class="search-results" id="searchResults"></div>
+    <div class="search-footer">
+      <span><kbd>↑↓</kbd> Navigate</span>
+      <span><kbd>↵</kbd> Select</span>
+      <span><kbd>esc</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Modal -->
+<div class="kbd-modal" id="kbdModal">
+  <div class="kbd-modal-content">
+    <div class="kbd-modal-title">Keyboard shortcuts</div>
+    <div class="kbd-row">
+      <span class="kbd-row-label">Search documentation</span>
+      <div class="kbd-keys"><kbd class="key">/</kbd></div>
+    </div>
+    <div class="kbd-row">
+      <span class="kbd-row-label">Show this dialog</span>
+      <div class="kbd-keys"><kbd class="key">?</kbd></div>
+    </div>
+    <div class="kbd-row">
+      <span class="kbd-row-label">Toggle theme</span>
+      <div class="kbd-keys"><kbd class="key">T</kbd></div>
+    </div>
+    <div class="kbd-row">
+      <span class="kbd-row-label">Close modal</span>
+      <div class="kbd-keys"><kbd class="key">Esc</kbd></div>
+    </div>
+    <div class="kbd-row">
+      <span class="kbd-row-label">Go to top</span>
+      <div class="kbd-keys"><kbd class="key">⌘</kbd><kbd class="key">↑</kbd></div>
+    </div>
+    <div class="kbd-row">
+      <span class="kbd-row-label">Go to bottom</span>
+      <div class="kbd-keys"><kbd class="key">⌘</kbd><kbd class="key">↓</kbd></div>
+    </div>
+  </div>
+</div>
+
 <script>
-  // Theme
+  // ============ THEME ============
   const themeBtn = document.getElementById('themeBtn');
   const themeIcon = document.getElementById('themeIcon');
   const sunIcon = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
   const moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
 
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  if (savedTheme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    themeIcon.innerHTML = moonIcon;
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeIcon.innerHTML = theme === 'dark' ? moonIcon : sunIcon;
+    localStorage.setItem('theme', theme);
   }
+
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  applyTheme(savedTheme);
+
   themeBtn.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
-    if (current === 'dark') {
-      document.documentElement.removeAttribute('data-theme');
-      themeIcon.innerHTML = sunIcon;
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      themeIcon.innerHTML = moonIcon;
-      localStorage.setItem('theme', 'dark');
-    }
+    applyTheme(current === 'dark' ? 'light' : 'dark');
   });
 
-  // Mobile menu
+  // ============ PROGRESS BAR ============
+  const progressBar = document.getElementById('progressBar');
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = progress + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  // ============ BACK TO TOP ============
+  const backToTop = document.getElementById('backToTop');
+  function updateBackToTop() {
+    if (window.scrollY > 400) {
+      backToTop.classList.add('show');
+    } else {
+      backToTop.classList.remove('show');
+    }
+  }
+  window.addEventListener('scroll', updateBackToTop, { passive: true });
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ============ MOBILE MENU ============
   const menuBtn = document.getElementById('menuBtn');
   const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay');
+  const mobileOverlay = document.getElementById('mobileOverlay');
 
   function closeMobileMenu() {
     sidebar.classList.remove('open');
-    overlay.classList.remove('show');
+    mobileOverlay.classList.remove('show');
   }
 
-  menuBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+  menuBtn.addEventListener('click', () => {
     sidebar.classList.toggle('open');
-    overlay.classList.toggle('show');
+    mobileOverlay.classList.toggle('show');
   });
+  mobileOverlay.addEventListener('click', closeMobileMenu);
 
-  overlay.addEventListener('click', closeMobileMenu);
-
-  // Nav link clicks — smooth scroll + close mobile menu
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const targetId = link.getAttribute('href').substring(1);
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        const offset = 100;
-        const top = targetEl.getBoundingClientRect().top + window.pageYOffset - offset;
-        window.scrollTo({ top: top, behavior: 'smooth' });
-      }
-      closeMobileMenu();
-    });
-  });
-
-  // Active section tracking via scroll
-  const sections = document.querySelectorAll('section[id]');
+  // ============ SCROLLSPY ============
+  const sections = document.querySelectorAll('.doc-section, .hero');
   const navLinks = document.querySelectorAll('.nav-link');
+  const sectionIds = Array.from(sections).map(s => s.id);
 
-  function updateActiveNav() {
-    let currentId = '';
+  function updateScrollspy() {
     const scrollPos = window.scrollY + 120;
+    let currentId = 'intro';
 
     sections.forEach(section => {
       if (section.offsetTop <= scrollPos) {
-        currentId = section.getAttribute('id');
+        currentId = section.id;
       }
     });
 
@@ -710,10 +2316,246 @@ R2 = round to 2 decimal places (used constantly)</code></pre>
         link.classList.remove('active');
       }
     });
+
+    updatePageNav(currentId);
   }
 
-  window.addEventListener('scroll', updateActiveNav, { passive: true });
-  updateActiveNav();
+  window.addEventListener('scroll', updateScrollspy, { passive: true });
+
+  // ============ PAGE NAV (Prev/Next) ============
+  const pageNav = document.getElementById('pageNav');
+  const prevTitle = document.getElementById('prevTitle');
+  const nextTitle = document.getElementById('nextTitle');
+  const prevLink = pageNav.querySelector('[data-nav="prev"]');
+  const nextLink = pageNav.querySelector('[data-nav="next"]');
+
+  const sectionTitles = {
+    intro: 'Introduction',
+    part1: '1 · The one-minute picture',
+    part2: '2 · Python survival kit',
+    part3: '3 · Files, one by one',
+    part4: '4 · pipeline_core.py',
+    part5: '5 · Recipes for changes',
+    part6: '6 · Golden rules',
+    part7: '7 · Testing changes'
+  };
+
+  function updatePageNav(currentId) {
+    const idx = sectionIds.indexOf(currentId);
+    if (idx > 0) {
+      const prevId = sectionIds[idx - 1];
+      prevTitle.textContent = sectionTitles[prevId];
+      prevLink.href = '#' + prevId;
+      prevLink.style.visibility = 'visible';
+    } else {
+      prevLink.style.visibility = 'hidden';
+    }
+
+    if (idx < sectionIds.length - 1) {
+      const nextId = sectionIds[idx + 1];
+      nextTitle.textContent = sectionTitles[nextId];
+      nextLink.href = '#' + nextId;
+      nextLink.style.visibility = 'visible';
+    } else {
+      nextLink.style.visibility = 'hidden';
+    }
+  }
+
+  // ============ NAV LINK CLICKS ============
+  document.querySelectorAll('.nav-link, .page-nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          const offset = 80;
+          const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+          closeMobileMenu();
+        }
+      }
+    });
+  });
+
+  // ============ COPY BUTTONS ============
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const codeBlock = btn.closest('.code-block');
+      const code = codeBlock.querySelector('pre').textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        const span = btn.querySelector('span');
+        const originalText = span.textContent;
+        span.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          span.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 1500);
+      } catch (err) {
+        console.error('Copy failed', err);
+      }
+    });
+  });
+
+  // ============ SEARCH ============
+  const searchInput = document.getElementById('searchInput');
+  const searchModal = document.getElementById('searchModal');
+  const searchModalInput = document.getElementById('searchModalInput');
+  const searchResults = document.getElementById('searchResults');
+
+  const searchData = [
+    { id: 'intro', title: 'Introduction', section: 'Getting Started' },
+    { id: 'part1', title: 'The one-minute picture', section: 'Foundations' },
+    { id: 'part2', title: 'Python survival kit', section: 'Foundations' },
+    { id: 'part3', title: 'The files, one by one', section: 'The Files' },
+    { id: 'part4', title: 'pipeline_core.py function by function', section: 'The Files' },
+    { id: 'part5', title: 'Recipes for common changes', section: 'Day to Day' },
+    { id: 'part6', title: 'Golden rules', section: 'Day to Day' },
+    { id: 'part7', title: 'How to test any change safely', section: 'Day to Day' }
+  ];
+
+  function openSearch() {
+    searchModal.classList.add('show');
+    setTimeout(() => searchModalInput.focus(), 50);
+    renderSearchResults('');
+  }
+
+  function closeSearch() {
+    searchModal.classList.remove('show');
+    searchModalInput.value = '';
+  }
+
+  function renderSearchResults(query) {
+    const q = query.toLowerCase().trim();
+    const filtered = q ? searchData.filter(item =>
+      item.title.toLowerCase().includes(q) || item.section.toLowerCase().includes(q)
+    ) : searchData;
+
+    if (filtered.length === 0) {
+      searchResults.innerHTML = '<div class="search-empty">No results found</div>';
+      return;
+    }
+
+    searchResults.innerHTML = filtered.map((item, i) => `
+      <div class="search-result ${i === 0 ? 'focused' : ''}" data-id="${item.id}">
+        <svg class="search-result-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="search-result-title">${item.title}</span>
+        <span class="search-result-section">${item.section}</span>
+      </div>
+    `).join('');
+
+    searchResults.querySelectorAll('.search-result').forEach(el => {
+      el.addEventListener('click', () => {
+        const target = document.getElementById(el.dataset.id);
+        if (target) {
+          const offset = 80;
+          const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+        closeSearch();
+      });
+    });
+  }
+
+  searchInput.addEventListener('click', openSearch);
+  searchModal.addEventListener('click', (e) => {
+    if (e.target === searchModal) closeSearch();
+  });
+  searchModalInput.addEventListener('input', (e) => {
+    renderSearchResults(e.target.value);
+  });
+
+  // ============ KEYBOARD SHORTCUTS ============
+  const kbdModal = document.getElementById('kbdModal');
+  const kbdBtn = document.getElementById('kbdBtn');
+
+  kbdBtn.addEventListener('click', () => {
+    kbdModal.classList.toggle('show');
+  });
+  kbdModal.addEventListener('click', (e) => {
+    if (e.target === kbdModal) kbdModal.classList.remove('show');
+  });
+
+  document.addEventListener('keydown', (e) => {
+    // Ignore if typing in input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Escape') {
+        closeSearch();
+        e.target.blur();
+      }
+      return;
+    }
+
+    if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
+      e.preventDefault();
+      openSearch();
+    } else if (e.key === '?') {
+      e.preventDefault();
+      kbdModal.classList.toggle('show');
+    } else if (e.key === 't' || e.key === 'T') {
+      const current = document.documentElement.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    } else if (e.key === 'Escape') {
+      closeSearch();
+      kbdModal.classList.remove('show');
+    } else if (e.key === 'ArrowUp' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (e.key === 'ArrowDown' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+  });
+
+  // Navigate search results with arrow keys
+  searchModalInput.addEventListener('keydown', (e) => {
+    const results = searchResults.querySelectorAll('.search-result');
+    if (results.length === 0) return;
+
+    const focused = searchResults.querySelector('.search-result.focused');
+    let idx = Array.from(results).indexOf(focused);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      idx = (idx + 1) % results.length;
+      results.forEach(r => r.classList.remove('focused'));
+      results[idx].classList.add('focused');
+      results[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      idx = (idx - 1 + results.length) % results.length;
+      results.forEach(r => r.classList.remove('focused'));
+      results[idx].classList.add('focused');
+      results[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focused) focused.click();
+    }
+  });
+
+  // ============ FADE IN ANIMATIONS ============
+  const fadeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
+  // ============ READING TIME ============
+  const contentText = document.querySelector('.content-wrap').textContent;
+  const wordCount = contentText.trim().split(/\s+/).length;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+  document.getElementById('readTime').textContent = readTime + ' min read';
+
+  // ============ INIT ============
+  updateProgress();
+  updateScrollspy();
+  updateBackToTop();
 </script>
 
 </body>
