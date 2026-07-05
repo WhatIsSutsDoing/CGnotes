@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Till Reconciliation — Maintainer's Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-600-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-700-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/source-serif-4@latest/latin-400-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/source-serif-4@latest/latin-700-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono@latest/latin-400-normal.css">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --bg-soft: #f3f2ee;
+    --bg-code: #1c1b1a;
+    --text: #1f1d1a;
+    --text-soft: #5a5650;
+    --text-mute: #8a857d;
+    --border: #e5e2db;
+    --accent: #b85c38;
+    --accent-soft: #f4e6dc;
+    --accent-hover: #9c4a2c;
+  }
+  [data-theme="dark"] {
+    --bg: #0b0a09;
+    --bg-soft: #131210;
+    --bg-code: #050404;
+    --text: #e8e4db;
+    --text-soft: #9a948b;
+    --text-mute: #5c5750;
+    --border: #1f1d1a;
+    --accent: #d97a4a;
+    --accent-soft: #1e1510;
+    --accent-hover: #f09a6d;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.75;
+    transition: background 0.3s, color 0.3s;
+    margin: 0;
+    padding: 0;
+  }
+  .ui-font { font-family: 'Inter', system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-mute); }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--bg-soft);
+    border-right: 1px solid var(--border);
+    transition: transform 0.3s ease;
+  }
+  .nav-link {
+    color: var(--text-soft);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: block;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-link:hover {
+    color: var(--text);
+    background: var(--bg);
+  }
+  .nav-link.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  .nav-part {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 14px 6px;
+    margin-top: 8px;
+  }
+
+  /* Content */
+  .content h1 {
+    font-size: 2.5rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+  .content h2 {
+    font-size: 1.75rem;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-top: 3.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 100px;
+  }
+  .content h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+    scroll-margin-top: 100px;
+  }
+  .content p { margin-bottom: 1.25rem; color: var(--text-soft); }
+  .content p strong, .content li strong { color: var(--text); font-weight: 600; }
+  .content ul, .content ol { margin-bottom: 1.25rem; padding-left: 1.5rem; color: var(--text-soft); }
+  .content li { margin-bottom: 0.5rem; }
+  .content li::marker { color: var(--accent); }
+
+  .content code:not(pre code) {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+  .content pre {
+    background: var(--bg-code);
+    color: #e8e4d9;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+  }
+  .content pre code {
+    font-family: 'JetBrains Mono', monospace;
+    color: inherit;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 3rem 0;
+  }
+
+  .callout {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    margin: 1.5rem 0;
+  }
+  .callout p { color: var(--text); margin: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .rule-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .rule-card strong { color: var(--accent); }
+
+  .hero-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-mute);
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-soft);
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  /* Top bar */
+  .topbar {
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+  }
+
+  /* Mobile */
+  @media (max-width: 1024px) {
+    .sidebar {
+      position: fixed;
+      top: 65px;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      z-index: 40;
+      transform: translateX(-100%);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .overlay {
+      position: fixed;
+      inset: 65px 0 0 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+  }
+
+  /* Fade in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.5s ease both; }
+
+  /* Flow diagram */
+  .flow-step {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    position: relative;
+  }
+  .flow-step::after {
+    content: '↓';
+    position: absolute;
+    left: 50%;
+    bottom: -22px;
+    transform: translateX(-50%);
+    color: var(--accent);
+    font-size: 18px;
+  }
+  .flow-step:last-child::after { display: none; }
+
+  /* Button */
+  .btn {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--border); }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<header class="topbar fixed top-0 left-0 right-0 z-50 h-[65px] flex items-center justify-between px-5 md:px-8">
+  <div class="flex items-center gap-3">
+    <button id="menuBtn" class="btn lg:hidden" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center ui-font font-bold text-white" style="background: var(--accent);">T</div>
+      <div class="ui-font">
+        <div class="text-sm font-semibold leading-tight">Till Reconciliation</div>
+        <div class="text-xs leading-tight" style="color: var(--text-mute);">Maintainer's Guide</div>
+      </div>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <button id="themeBtn" class="btn" aria-label="Toggle theme">
+      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="flex pt-[65px] min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="sidebar w-[280px] shrink-0 h-[calc(100vh-65px)] sticky top-[65px] overflow-y-auto hidden lg:block py-4" id="sidebar">
+    <nav class="px-3">
+      <div class="nav-part">Overview</div>
+      <a href="#intro" class="nav-link">Introduction</a>
+
+      <div class="nav-part">Foundations</div>
+      <a href="#part1" class="nav-link">1 · The one-minute picture</a>
+      <a href="#part2" class="nav-link">2 · Python survival kit</a>
+
+      <div class="nav-part">The Files</div>
+      <a href="#part3" class="nav-link">3 · Files, one by one</a>
+      <a href="#part4" class="nav-link">4 · pipeline_core.py</a>
+
+      <div class="nav-part">Day to Day</div>
+      <a href="#part5" class="nav-link">5 · Recipes for changes</a>
+      <a href="#part6" class="nav-link">6 · Golden rules</a>
+      <a href="#part7" class="nav-link">7 · Testing changes</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 min-w-0">
+    <div class="max-w-3xl mx-auto px-6 sm:px-10 md:px-16 lg:px-20 py-10 md:py-14 content">
+
+      <!-- Hero -->
+      <section id="intro" class="fade-up">
+        <div class="hero-meta ui-font mb-6">
+          <span class="dot"></span>
+          <span>Internal documentation · v1.0</span>
+        </div>
+        <h1>Maintainer's Guide</h1>
+        <p class="text-lg" style="color: var(--text-soft);">
+          This guide explains how every script and every function works, in plain English, so you can change things yourself without breaking the pipeline. It assumes no Python experience. Read parts 1 and 2 once; after that, use part 5 (recipes) and part 6 (golden rules) whenever you want to change something.
+        </p>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- PART 1 -->
+      <section id="part1" class="fade-up">
+        <h2>Part 1 — The one-minute picture</h2>
+        <p>There are six Python files. Only two do the real work; the others are wrappers and tools.</p>
+
+        <div class="grid gap-4 my-6">
+          <div class="flow-step">
+            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">STEP 1</div>
+            <div class="font-semibold">daily_runner.py</div>
+            <p class="text-sm mb-0" style="color: var(--text-soft);">Finds the files in <code>incoming/</code>, decides folder names, archives inputs. Knows <em>nothing</em> about accounting.</p>
+          </div>
+          <div class="flow-step">
+            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">STEP 2</div>
+            <div class="font-semibold">clean_pipeline.py — <code>run_day()</code></div>
+            <p class="text-sm mb-0" style="color: var(--text-soft);">The recipe card. Calls the pipeline_core functions in the right order, writes the outputs.</p>
+          </div>
+          <div class="flow-step">
+            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">STEP 3</div>
+            <div class="font-semibold">pipeline_core.py</div>
+            <p class="text-sm mb-0" style="color: var(--text-soft);">The engine. Every rule about money lives here: reading files, the 4 cleaning rules, building the three journals, the balance checks.</p>
+          </div>
+          <div class="flow-step">
+            <div class="ui-font text-xs font-semibold mb-1" style="color: var(--accent);">SETTINGS</div>
+            <div class="font-semibold">reference/reference.json</div>
+            <p class="text-sm mb-0" style="color: var(--text-soft);">The "settings file": shops, cost centres, journal row types, coupon codes. Plain text.</p>
+          </div>
+        </div>
+
+        <h3>Side tools, used occasionally</h3>
+        <ul>
+          <li><strong>combine_exports.py</strong> — stacks several days' exports into one import file.</li>
+          <li><strong>extract_reference.py</strong> — rebuilds <code>reference.json</code> from a finished workbook.</li>
+          <li><strong>validate_exports.py</strong> — compares one run's exports against another set.</li>
+        </ul>
+
+        <div class="callout">
+          <p><strong>A rule of thumb for where to look:</strong> if the change is about a shop, cost centre or coupon code, edit <code>reference.json</code> (no code at all). If it's about folders or file names, look in <code>daily_runner.py</code>. If it's about money, rules or journal content, look in <code>pipeline_core.py</code>.</p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- PART 2 -->
+      <section id="part2" class="fade-up">
+        <h2>Part 2 — Python survival kit <span class="text-base font-normal" style="color: var(--text-mute);">(10 minutes)</span></h2>
+        <p>You only need five ideas to read this codebase.</p>
+
+        <div class="rule-card">
+          <p><strong>1. A function is a named recipe.</strong> <code>def read_banking(path):</code> defines a recipe called <code>read_banking</code> that needs one ingredient (<code>path</code>, the file location). Everything indented below it is the recipe. <code>return b</code> at the end is what the recipe hands back. Indentation is not decoration in Python — it <em>is</em> the structure, so when editing, keep lines aligned exactly as their neighbours (4 spaces per level, never tabs).</p>
+        </div>
+
+        <div class="rule-card">
+          <p><strong>2. A dictionary maps names to values.</strong> <code>{'CG-BLA01': 'A52'}</code> is a lookup table: ask for <code>'CG-BLA01'</code>, get <code>'A52'</code>. <code>ref['shop_cost_centre']</code> is such a table. <code>.get(sh, NA)</code> means "look up sh, and if it's not there, give me NA instead of crashing".</p>
+        </div>
+
+        <div class="rule-card">
+          <p><strong>3. A DataFrame is a spreadsheet in memory.</strong> The variable names follow a convention throughout: <code>s</code> = the Sales sheet, <code>si</code> = Sales Items, <code>sp</code> = Sales Payments, each as a DataFrame. <code>si['Total']</code> is a whole column. <code>si.groupby('Sale ID')['Total'].sum()</code> means "subtotal the Total column for each Sale ID" — exactly a pivot table. <code>df[df['Type'] == 'POS Payment']</code> means "keep only the rows where Type is POS Payment" — exactly a filter.</p>
+        </div>
+
+        <div class="rule-card">
+          <p><strong>4. f-strings build text from values.</strong> <code>f'cash difference £{difference}'</code> inserts the value of <code>difference</code> into the message. The <code>{}</code> parts are live; the rest is literal text you can reword freely.</p>
+        </div>
+
+        <div class="rule-card">
+          <p><strong>5. Comments.</strong> Anything after <code>#</code> on a line is a note for humans, ignored by Python. The scripts are full of them — read them, they explain intent.</p>
+        </div>
+
+        <div class="callout">
+          <p><strong>How to edit safely:</strong> use a plain-text editor (Notepad++ or VS Code on Windows, TextEdit-in-plain-mode or VS Code on Mac — <em>not</em> Word). Before any change, copy the file you're editing to e.g. <code>pipeline_core BACKUP.py</code>. If a run crashes after your edit, the error message's last few lines name the file and line number — go there, compare with your backup.</p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- PART 3 -->
+      <section id="part3" class="fade-up">
+        <h2>Part 3 — The files, one by one</h2>
+
+        <h3>daily_runner.py <span class="text-base font-normal" style="color: var(--text-mute);">— the front door</span></h3>
+        <ul>
+          <li><strong>find_one(patterns, kind, required)</strong> — looks in <code>incoming/</code> for one file matching the patterns (e.g. <code>*zettle*.csv</code>). Refuses to guess if it finds two, tells you plainly if it finds none. If your file names change shape, this is where the matching patterns live.</li>
+          <li><strong>main()</strong> — finds the four inputs, calls <code>run_day(...)</code>, then moves results to <code>output/&lt;trading-date&gt;/</code> (adding <code>_run2</code>, <code>_run3</code> if you re-run a day) and the inputs to <code>archive/&lt;trading-date&gt;/</code>. If the pipeline crashes it prints the error and touches nothing.</li>
+        </ul>
+
+        <h3>clean_pipeline.py <span class="text-base font-normal" style="color: var(--text-mute);">— the recipe card</span></h3>
+        <p>One important function, <code>run_day(...)</code>. Its steps, in order:</p>
+        <ol>
+          <li>Read the four inputs (till workbook, Zettle CSV, banking CSV, coupons).</li>
+          <li>Work out the trading date from the Sales sheet and build the journal reference like <code>SU 29.01.26</code>. Flags for review if the till export spans more than one date.</li>
+          <li>Collect the coupon sale IDs (sales where Coupon Amount isn't zero).</li>
+          <li>Apply the cleaning rules: <code>clean(...)</code> then <code>fix_negative_misc(...)</code>.</li>
+          <li>Derive the per-item Shop / Description / Payment Type columns.</li>
+          <li>Work out per-shop cash takings and per-shop coupon totals.</li>
+          <li>Build the three journals: <code>build_ptf1_rows</code>, <code>build_banking_table</code> + <code>build_ptf2_rows</code>, <code>build_ptf3_rows</code>.</li>
+          <li>Run <code>balance_and_checks(...)</code>.</li>
+          <li><strong>Only if balanced AND nothing in manual_review:</strong> write the three <code>*_PTFn_export.csv</code> files. Warnings do not block. Always writes the <code>_CLEANED.xlsx</code> workbook, <code>run_report.json</code>, and <code>SUMMARY.txt</code>.</li>
+        </ol>
+
+        <div class="callout">
+          <p>If you ever want to change <strong>what blocks exports</strong>, the line to find is:</p>
+          <pre><code>if balanced and not report['manual_review']:</code></pre>
+          <p>Anything appended to <code>report['manual_review']</code> anywhere in the code blocks exports; anything appended to <code>report['warnings']</code> is shown but does not.</p>
+        </div>
+
+        <h3>pipeline_core.py <span class="text-base font-normal" style="color: var(--text-mute);">— the engine</span></h3>
+        <p>See Part 4.</p>
+
+        <h3>combine_exports.py <span class="text-base font-normal" style="color: var(--text-mute);">— batching for import</span></h3>
+        <ul>
+          <li><strong>parse_date(s)</strong> — understands <code>dd/mm/yyyy</code> and several other date shapes.</li>
+          <li><strong>day_folder(day)</strong> — finds <code>output/&lt;date&gt;</code>, preferring the highest <code>_runN</code> folder if the day was re-run.</li>
+          <li><strong>day_frames(folder)</strong> — loads that day's PTF1, PTF2, PTF3 CSVs.</li>
+          <li><strong>main(argv)</strong> — asks for the from/to dates, warns about missing days, stacks everything in order, writes <code>output/PTF_&lt;d1&gt;-&lt;d2&gt;.csv</code> in Windows (cp1252) encoding, and re-checks the combined file balances.</li>
+        </ul>
+
+        <h3>extract_reference.py</h3>
+        <p>Reads <em>only</em> the Control sheet of a finished workbook and rewrites <code>reference.json</code> (shop→cost centre, the 8 PTF 2 row types, coupon→outlet). You will rarely need it — editing <code>reference.json</code> by hand is usually easier.</p>
+
+        <h3>validate_exports.py</h3>
+        <pre><code>python3 validate_exports.py --any-order &lt;run_folder&gt; &lt;old csvs...&gt;</code></pre>
+        <p>Compares a run's exports against reference CSVs, cell by cell, tolerant of number formatting. Your safety net after code changes (see Part 7).</p>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- PART 4 -->
+      <section id="part4" class="fade-up">
+        <h2>Part 4 — pipeline_core.py, function by function</h2>
+
+        <h3>The constants at the top</h3>
+        <pre><code>TOL = 0.005            # "equal to the penny" tolerance everywhere
+NA  = '#N/A'           # what an unknown shop's cost centre shows as
+SUFFIX = {'VOUCHER': 'v', 'CASH': 'x', ...}
+MOVE_PRIORITY = {'VOUCHER': 0, 'CASH': 1, 'IZETTLE': 2, 'CARD': 2}
+R2 = round to 2 decimal places (used constantly)</code></pre>
+        <p><code>SUFFIX</code> and <code>MOVE_PRIORITY</code> control the sale-splitting rule: when one sale was paid with two methods, the <em>lowest</em> priority method is moved out onto a new Sale ID ending in its suffix letter (voucher part → <code>...v</code>, cash part → <code>...x</code>), and the highest priority keeps the original ID. Card keeps the original ID whenever it's involved so Zettle matching still works.</p>
+
+        <h3>Readers (files in)</h3>
+        <ul>
+          <li><strong>read_till_workbook(path)</strong> — opens the till <code>.xlsx</code> (headers are on row 5, hence <code>skiprows=4</code> inside) and returns the three DataFrames <code>s, si, sp</code>.</li>
+          <li><strong>read_csv_any(path)</strong> — reads a CSV in whatever encoding it was saved in (Excel's Windows format, UTF-8, with/without BOM). All CSV readers use it.</li>
+          <li><strong>money(series)</strong> — turns Excel-style money text into numbers: strips <code>£</code>, thousands commas, spaces; treats <code>(5.00)</code> as <code>-5.00</code>.</li>
+          <li><strong>read_zettle(path)</strong> — keeps only <code>Type == 'POS Payment'</code> (and Completed), cleans Gross/Fee/Net with <code>money</code>, and pulls the till Sale ID out of the Item Title (the part before the first underscore).</li>
+          <li><strong>read_banking(path)</strong> — needs <code>Shop_Code</code> and <code>Cash_Banked</code>; <code>Float_Change</code> (signed: +7 up, -5 down); <code>Card_Settlement</code> optional (blank = skip the cross-check). Old files with <code>Float_Start</code>/<code>End</code> or <code>Cash_Coins</code> still load.</li>
+          <li><strong>read_coupons(path)</strong> — forgiving headers ('Coupon code' or 'Coupon_Code', 'amount' or 'Amount'); ignores extra columns like 'Number of times used'.</li>
+        </ul>
+
+        <h3>Cleaning (the 4 rules)</h3>
+        <ul>
+          <li><strong>subset_for_amount(amounts, target)</strong> — the puzzle-solver used by splitting: which combination of item lines adds up to the moved payment? Prefers whole lines; will split one line in two if it must.</li>
+          <li><strong>clean(s, si, sp, report)</strong> — rules 1–3 in one pass:
+            <ol>
+              <li><em>Splits</em> multi-payment sales (using SUFFIX / MOVE_PRIORITY above) and <em>merges</em> duplicate payments of the same method. Each action is logged into <code>report['splits']</code> / <code>report['merges']</code>.</li>
+              <li><em>Deletes VOIDED sales that still carry a value</em> (rows removed from all three sheets; logged in <code>report['voids']</code>).</li>
+              <li><em>Penny fixes</em>: if a sale's items and payments disagree by 5p or less, nudges one item line so they match; more than 5p goes to <code>manual_review</code>.</li>
+            </ol>
+          </li>
+          <li><strong>fix_negative_misc(...)</strong> — rule 4: a negative MISC line is re-labelled to the product of the matching original sale (same shop, same payment type, same amount, nearest earlier sale with a single product). No match → <code>manual_review</code>.</li>
+        </ul>
+
+        <h3>Derived columns</h3>
+        <p><strong>derive_item_columns(si, sales, sp, coupon_ids, blank_desc_label)</strong> — adds three columns to Sales Items: <strong>Shop</strong> (from the sale's Outlet Tag), <strong>Payment Type</strong> (CASH → 'Cash'; card entry mode ending 'EMV' → 'Card'; otherwise 'Redeemed'; coupon sales → 'Coupon'/'Split'), and <strong>Description</strong> (product name for CG-/CL- shops, category for cafés; blank café categories become <code>blank_desc_label</code>, default '0').</p>
+
+        <h3>Journal builders</h3>
+        <p>Every journal row is a dictionary with keys 'H' to 'Z' — the 19 output columns, named after their old spreadsheet column letters. The ones you'll care about:</p>
+        <ul>
+          <li><strong>J</strong> = the money value (always positive)</li>
+          <li><strong>K</strong> = nominal code</li>
+          <li><strong>L</strong> = narrative</li>
+          <li><strong>M</strong> = cost centre</li>
+          <li><strong>N</strong> = department</li>
+          <li><strong>O</strong> = shop</li>
+          <li><strong>R</strong> = SYSTraderTranType (4 or 5 for nominal lines, 1 for bank lines)</li>
+          <li><strong>Y / Z</strong> = date and journal reference</li>
+        </ul>
+
+        <ul>
+          <li><strong>build_ptf1_pivot(si_d)</strong> — subtotals Card+Cash items by Shop × Description, alphabetically.</li>
+          <li><strong>eval_ptf1_row(...)</strong> — turns one subtotal into a PTF 1 row: nominal 4150 if the description ends 'Donation', 2710 for Pay-it-Forward, else 5000; VAT maths (<code>P = J / 1.2</code> when VAT applies); R = 4 for positive, 5 for negative amounts.</li>
+          <li><strong>eval_ptf1_donation_row(...)</strong> — the two fixed rows at the top of PTF 1 (CG Network Donation → cost centre 153/GRO, General Donation → 100/CEN).</li>
+          <li><strong>build_ptf1_rows(...)</strong> — glues the above together.</li>
+          <li><strong>dept_of(shop)</strong> — 'GRO' if the code starts CG-, 'CLO' if CL-, else 'HEC'.</li>
+          <li><strong>build_banking_table(...)</strong> — one row of figures per shop (every shop in <code>reference.json</code>, plus any unexpected ones → <code>manual_review</code>): Card and Zettle Fee grouped from the Zettle CSV; Cash banked; <strong>Difference = Cash_Banked − cash payments + Float_Change</strong> (so float money isn't mistaken for a discrepancy); differences over £10 → warnings (do not block). Card_Settlement, when given, is cross-checked here.</li>
+          <li><strong>build_ptf2_rows(bank_table, ref, ...)</strong> — expands each shop's figures into its 8 journal lines using <code>ref['ptf2_row_types']</code>. Bank lines (Card → 1980, Cash → 1990) get R = 1. Nominal lines get R = 4 when the underlying figure is positive, 5 when negative — which is what makes 'Float decreased' post as 4, 'Float increased' as 5, surplus differences 4, shortfalls 5, with J always positive.</li>
+          <li><strong>build_ptf3_rows(sp, sales, coupons, ref, ...)</strong> — three blocks: vouchers by shop × series (last 4 digits of the reference; that series <em>is</em> the nominal code; narrative 'PIF donations redeemed'; R=4), the contra by shop × full reference (nominal 2710, 'Voucher - &lt;ref&gt;', R=5), and coupons by code (nominal 5000, 'Coupon - &lt;code&gt;', outlet from reference, R=5).</li>
+        </ul>
+
+        <h3>Checks and output</h3>
+        <ul>
+          <li><strong>balance_and_checks(...)</strong> — fills <code>report['checks']</code>: side A (all J where R is 4 or 2) must equal side B (R is 5 or 1); items must equal payments per sale; no MISC left; no voids with value; no multi-payment sales left; Zettle rows all matched; coupon file total equals the till's coupon total. Returns True only if all pass.</li>
+          <li><strong>PTF_HEADERS + rows_to_df(rows)</strong> — converts the H..Z dictionaries into the 19-column CSV layout, rounds money to 2dp, formats dates dd/mm/yyyy.</li>
+        </ul>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- PART 5 -->
+      <section id="part5" class="fade-up">
+        <h2>Part 5 — Recipes for common changes</h2>
+
+        <h3>Change the £10 cash-difference review threshold</h3>
+        <p>File: <code>pipeline_core.py</code>, inside <code>build_banking_table</code>. Find <code>if abs(difference) &gt; 10:</code> and change the 10. Also reword the message in the line below if you like (it's just text in an f-string).</p>
+
+        <h3>Add a shop</h3>
+        <p><strong>No code.</strong> In <code>reference.json</code>, inside <code>"shop_cost_centre"</code>, add a line like <code>"CG-WYT01": "A52",</code> (note the comma). That alone gives it the 8 daily PTF 2 lines, its cost centre everywhere, and its department.</p>
+
+        <h3>Add or re-map a coupon code</h3>
+        <p><strong>No code.</strong> In <code>reference.json</code>, inside <code>"coupon_outlet"</code>, add <code>"NEWCODE": "Cafe - Mess",</code>.</p>
+
+        <h3>Change which department a shop prefix gets</h3>
+        <p><code>pipeline_core.py</code>, <code>dept_of</code> — four short lines, edit the prefixes/labels.</p>
+
+        <h3>Reword a journal narrative</h3>
+        <p>For PTF 2 lines, edit the <code>description</code> text in <code>reference.json</code>'s <code>ptf2_row_types</code> (no code). For PTF 3, the texts <code>'PIF donations redeemed'</code>, <code>'Voucher - '</code>, <code>'Coupon - '</code> are literal strings inside <code>build_ptf3_rows</code>. For the café blank label, run with <code>--blank-desc "Open Food"</code> or change the default in <code>run_day</code>.</p>
+
+        <h3>Change a nominal code</h3>
+        <p>PTF 2 codes live in <code>reference.json</code> (<code>ptf2_row_types</code> → <code>bank</code> / <code>code</code>). PTF 1 codes (4150 / 2710 / 5000) are in <code>eval_ptf1_row</code>. PTF 3's 2710 and 5000 are in <code>build_ptf3_rows</code>.</p>
+
+        <h3>Change the penny-fix limit (currently 5p)</h3>
+        <p><code>pipeline_core.py</code>, inside <code>clean</code>, find <code>&gt; 0.05</code> near the penny section.</p>
+
+        <h3>Change which payment method keeps the original Sale ID in a split</h3>
+        <p>Edit <code>MOVE_PRIORITY</code> at the top of <code>pipeline_core.py</code> — higher number keeps the ID. Don't demote CARD/IZETTLE below the others: the card part must keep the original ID or Zettle matching breaks.</p>
+
+        <h3>Make something block exports / stop it blocking</h3>
+        <p>Find where it's appended and switch the list: <code>report['manual_review'].append(...)</code> blocks, <code>report.setdefault('warnings', []).append(...)</code> doesn't.</p>
+
+        <h3>Change folder or file names</h3>
+        <p><code>daily_runner.py</code> (<code>INCOMING</code>, <code>OUTPUT</code>, <code>ARCHIVE</code>, and the <code>find_one</code> patterns) and, for the export file names, the <code>f'{base}_{name}_export.csv'</code> line in <code>run_day</code>.</p>
+
+        <h3>Change the £1-style tolerance used everywhere</h3>
+        <p>That's <code>TOL = 0.005</code> (half a penny) at the top of <code>pipeline_core.py</code>. Think twice — it's used in the balance checks too.</p>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- PART 6 -->
+      <section id="part6" class="fade-up">
+        <h2>Part 6 — Golden rules <span class="text-base font-normal" style="color: var(--text-mute);">(things NOT to change)</span></h2>
+
+        <div class="rule-card">
+          <p><strong>1.</strong> Never edit <code>PTF_HEADERS</code> or the H..Z letters. They <em>are</em> your accounting import format. Rename one and the import breaks.</p>
+        </div>
+        <div class="rule-card">
+          <p><strong>2.</strong> Never rename the input column names the readers look for ('Sale ID', 'Payment Method', 'Payment Amount', 'Outlet Tag', 'Total', 'Shop_Code', 'Cash_Banked', …) unless the source files really changed.</p>
+        </div>
+        <div class="rule-card">
+          <p><strong>3.</strong> Don't change the R (SYSTraderTranType) logic — 4/5/1 decide which side of the ledger a line sits on. Get one wrong and days stop balancing.</p>
+        </div>
+        <div class="rule-card">
+          <p><strong>4.</strong> Keep J values positive. The sign information lives in R, not in J.</p>
+        </div>
+        <div class="rule-card">
+          <p><strong>5.</strong> Don't weaken the balance check to "make a day pass". If a day won't balance, the data is telling you something — the run report says what.</p>
+        </div>
+        <div class="rule-card">
+          <p><strong>6.</strong> Keep <code>reference.json</code> valid JSON: double quotes around names and values, commas between entries, no comma after the last entry in a block. If a run fails right after you edited it, it's almost always a missing or extra comma.</p>
+        </div>
+        <div class="rule-card">
+          <p><strong>7.</strong> One change at a time, then test (Part 7), then the next change.</p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- PART 7 -->
+      <section id="part7" class="fade-up">
+        <h2>Part 7 — How to test any change safely</h2>
+        <p>Keep a "known good day" — a set of inputs whose correct outputs you trust (your <code>archive/</code> folders are perfect for this: each holds the exact inputs for that date, and <code>output/&lt;date&gt;/</code> holds what they should produce).</p>
+
+        <p>After any edit:</p>
+        <ol>
+          <li>Copy a known good day's inputs from <code>archive/&lt;date&gt;/</code> back into <code>incoming/</code> and double-click <em>Run Daily Reconciliation</em>.</li>
+          <li>It should say <strong>BALANCED</strong> with the same totals as before.</li>
+          <li>Compare the new exports with the old ones:
+            <pre><code>python3 validate_exports.py --any-order output/&lt;date&gt;_run2 \
+    output/&lt;date&gt;/*_PTF1_export.csv \
+    output/&lt;date&gt;/*_PTF2_export.csv \
+    output/&lt;date&gt;/*_PTF3_export.csv</code></pre>
+            <p>"VALIDATION PASSED" = your change altered nothing it shouldn't.</p>
+            <p>(If your change was <em>meant</em> to alter the output — a reworded narrative, say — the diff will list exactly the cells that changed, so you can confirm it's only what you intended.)</p>
+          </li>
+          <li>Only then process new days with the changed scripts.</li>
+        </ol>
+
+        <div class="callout">
+          <p>If anything goes wrong: restore your <code>BACKUP</code> copy of the file, re-run the known good day to confirm you're back to normal, and try again in smaller steps. And of course — bring the error message back to Claude and we'll fix it together.</p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <footer class="text-center py-10" style="color: var(--text-mute);">
+        <p class="ui-font text-sm">Till Reconciliation · Maintainer's Guide</p>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Theme
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  const sunIcon = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
+  const moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  if (savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    themeIcon.innerHTML = moonIcon;
+  }
+  themeBtn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    if (current === 'dark') {
+      document.documentElement.removeAttribute('data-theme');
+      themeIcon.innerHTML = sunIcon;
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeIcon.innerHTML = moonIcon;
+      localStorage.setItem('theme', 'dark');
+    }
+  });
+
+  // Mobile menu
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+
+  function closeMobileMenu() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  });
+
+  overlay.addEventListener('click', closeMobileMenu);
+
+  // Nav link clicks — smooth scroll + close mobile menu
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').substring(1);
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        const offset = 100;
+        const top = targetEl.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }
+      closeMobileMenu();
+    });
+  });
+
+  // Active section tracking via scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  function updateActiveNav() {
+    let currentId = '';
+    const scrollPos = window.scrollY + 120;
+
+    sections.forEach(section => {
+      if (section.offsetTop <= scrollPos) {
+        currentId = section.getAttribute('id');
+      }
+    });
+
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href === '#' + currentId) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
+</script>
+
+</body>
+</html>
